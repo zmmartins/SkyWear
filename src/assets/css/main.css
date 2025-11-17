@@ -190,6 +190,7 @@
 /* Alt container */
 .alt-container {
     position: absolute;
+    top: 0;
     left: 50%;
     width: 100%;
     height:100%;
@@ -201,10 +202,9 @@
 .alt-item {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);
-
+    transform: translate(-50%, 0);
     opacity: 0;
-    z-index: 2;
+    z-index: 1;
     transition:
         opacity .45s ease,
         transform .45s cubic-bezier(.25, .8, .4, 1);
@@ -225,7 +225,6 @@
 /* Hover animation (all items) */
 .carousel__art:hover .alt-item {
     opacity: 1;
-    z-index: 1;
 }
 
 /* 1: fly up-left */
