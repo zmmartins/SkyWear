@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Clothing Store</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Shared styles for whole app -->
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <!-- Storefront-specific styles -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+
+<body>
+  <!-- Top navbar -->
+  <header class="navbar">
+    <div class="navbar__logo">SkyWear</div>
+
+    <div class="navbar__actions">
+      <button class="btn btn--ghost">Sign in</button>
+      <button class="btn btn--primary">Cart (0)</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Full-height hero carousel (from navbar to bottom) -->
+    <section class="hero-carousel">
+      <div class="carousel" data-carousel>
+        <button class="carousel__btn carousel__btn--prev" data-carousel-prev>&lt;</button>
+        <button class="carousel__btn carousel__btn--next" data-carousel-next>&gt;</button>
+
+        <div class="carousel__track" data-carousel-track>
+            <article class="carousel__slide carousel__slide--one is-active">
+                <div class="carousel__layout">
+                    <div class="carousel__art">
+
+                        <!-- Main outfit -->
+                        <div class="clothing-piece clothing-piece--pants">
+                            <img src="assets/img/pants.png" class="main" alt="Pants">
+                        </div>
+
+                        <div class="clothing-piece clothing-piece--jacket">
+                            <img src="assets/img/jacket.png" class="main" alt="Jacket">
+                        </div>
+
+                        <div class="clothing-piece clothing-piece--beanie">
+                            <img src="assets/img/beanie.png" class="main" alt="Beanie">
+                        </div>
+
+                        <!-- ALTERNATES (you can drop unlimited items here) -->
+                        <div class="alt-container">
+
+                            <img src="assets/img/hoodie1.png"
+                                class="alt-item alt-item--1"
+                                alt="Alt clothing 1">
+
+                            <img src="assets/img/hoodie2.png"
+                                class="alt-item alt-item--2"
+                                alt="Alt clothing 2">
+                            <!-- Add as many as you want -->
+                        </div>
+
+                    </div>
+
+                </div>
+            </article>
+
+
+        </div>
+
+        <div class="carousel__dots" data-carousel-dots></div>
+      </div>
+    </section>
+
+    <!-- Extra content so scrolling works naturally -->
+    <section class="content-section">
+      <h2>New Arrivals</h2>
+      <div class="product-grid">
+        <article class="product-card">
+          <div class="product-card__img"></div>
+          <h3>Oversized Hoodie</h3>
+          <p>$59.99</p>
+        </article>
+        <article class="product-card">
+          <div class="product-card__img"></div>
+          <h3>Relaxed Fit Jeans</h3>
+          <p>$69.99</p>
+        </article>
+        <article class="product-card">
+          <div class="product-card__img"></div>
+          <h3>Cropped Puffer Jacket</h3>
+          <p>$89.99</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="content-section" id="sale">
+      <h2>On Sale</h2>
+      <p>Later you can render real products here from Firestore.</p>
+    </section>
+  </main>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

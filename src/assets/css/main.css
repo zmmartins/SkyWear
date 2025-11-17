@@ -1,0 +1,239 @@
+/* Storefront-specific styles */
+
+/* HERO taking up full screen below navbar */
+.hero-carousel {
+    height: calc(100vh - var(--navbar-height));
+    min-height: calc(100vh - var(--navbar-height));
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ---------- CAROUSEL ---------- */
+
+.carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;   /* ← important */
+    overflow: hidden;
+}
+
+.carousel__layout{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 10px 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel__art {
+    position: relative;
+    width: 320px;
+    height: calc(100% - 20px);
+}
+
+.carousel__slide--one {
+    background: radial-gradient(
+        circle at top,
+        #dff3ff 0%,
+        #b7d8f5 35%,
+        #8bb8e8 70%,
+        #6a94d4 100%
+    );
+}
+
+.carousel__slide::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(15, 23, 42, 0.4), transparent);
+}
+
+.carousel__track {
+    display: flex;
+    height: 100%;      /* full height */
+    transition: transform 0.6s ease;
+}
+
+.carousel__slide {
+    min-width: 100%;
+    height: 100%;      /* full height */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Buttons on sides */
+.carousel__btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: var(--radius-pill);
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    color: #e5e7eb;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.carousel__btn--prev {
+    left: 1rem;
+}
+
+.carousel__btn--next {
+    right: 1rem;
+}
+
+/* Dots */
+
+.carousel__dots {
+    position: absolute;
+    bottom: 1.4rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    z-index: 10;
+}
+
+.carousel__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid #9ca3af;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+}
+
+.carousel__dot.is-active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+/* ---------- CONTENT SECTIONS BELOW HERO ---------- */
+
+.content-section {
+    padding: 3rem 2rem 4rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.content-section h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+}
+
+.product-card {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    padding: 1rem;
+    background: radial-gradient(circle at top left, var(--color-accent-soft), #050608);
+}
+
+.product-card__img {
+    height: 180px;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #111827, #4b5563);
+    margin-bottom: 0.75rem;
+}
+
+/* Clothing piece wrapper */
+.clothing-piece {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.clothing-piece--beanie {
+    top: 0%;
+    width: 25%;
+}
+
+.clothing-piece--jacket {
+    top: 10%;
+    width: 80%;
+}
+
+.clothing-piece--pants {
+    top: 45%;
+    width: 70%;
+}
+
+/* Main image (the visible one) */
+.clothing-piece .main {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    z-index: 3;
+}
+
+/* Alt container */
+.alt-container {
+    position: absolute;
+    left: 50%;
+    width: 100%;
+    height:100%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+/* Base alternate item styling */
+.alt-item {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+
+    opacity: 0;
+    z-index: 2;
+    transition:
+        opacity .45s ease,
+        transform .45s cubic-bezier(.25, .8, .4, 1);
+}
+
+/* Unique item variations */
+.alt-item--1 {
+    width: 80%;
+    top: 0%;
+    transition-delay: 0ms;
+}
+.alt-item--2 {
+    width: 80%;
+    top: 10%;
+    transition-delay: 70ms;
+}
+
+/* Hover animation (all items) */
+.carousel__art:hover .alt-item {
+    opacity: 1;
+    z-index: 1;
+}
+
+/* 1: fly up-left */
+.carousel__art:hover .alt-item--1 {
+    transform: translate(-50%, 0) translate(-100px, -20px) rotate(-20deg);
+}
+
+/* 2: fly straight right */
+.carousel__art:hover .alt-item--2 {
+    transform: translate(-50%, 0) translate(100px, -20px) rotate(20deg);
+}
