@@ -16,7 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let autoPlayId = null;
     const AUTO_PLAY_INTERVAL = 6000;
 
-    // If there is only ONE side -> hide controls and stop here
+    // Respect reduced motion preference
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce");
+
+    // If there is only ONE slide -> hide controls and stop here
     if(slideCount <= 1){
         if(prevBtn) prevBtn.style.display = "none";
         if(nextBtn) nextBtn.style.display = "none";
@@ -45,6 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 dot.classList.add("is-active");
             }
 
+            dot.setAttribute("aria-label", `Go to slide ${index + 1}`);
+            dot.setAttribute("aria-pressed", index === 0 ? "true" : "false");
+
             dotContainer.appendChild(dot);
         });
 
@@ -64,7 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(dots.length){
             dots.forEach((dot, i) => {
-                dot.classList.toggle("is-active", i === currentIndex);
+                const isActive = i === currentIndex;
+                dot.classList.toggle("is-active", isActive);
+                dot.setAttribute("aria-pressed", isActive ? "true" : "false");
+                
             });
         }
     }
@@ -78,12 +87,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function startAutoplay() {
-        stopAutoplay();
+        // Don't auto play if user prefers reduced motion
+        if(mediaQuery.matches) return;
+        // Don't create a second timer if one is already running
+        if(autoPlayId !== null) return;
+
         autoPlayId = setInterval(next, AUTO_PLAY_INTERVAL);
     }
 
     function stopAutoplay() {
-        if (autoPlayId) {
+        if (autoPlayId !== null) {
             clearInterval(autoPlayId);
             autoPlayId = null;
         }
@@ -92,28 +105,43 @@ document.addEventListener("DOMContentLoaded", () => {
     // Event listeners
     if (nextBtn) nextBtn.addEventListener("click", () => {
         next();
-        startAutoplay();
     });
 
     if (prevBtn) prevBtn.addEventListener("click", () => {
         prev();
-        startAutoplay();
     });
 
     if(dots.length){
         dots.forEach((dot, i) => {
             dot.addEventListener("click", () => {
                 updateCarousel(i);
-                startAutoplay();
             });
         });
     }
 
     // Pause on hover
     carousel.addEventListener("mouseenter", stopAutoplay);
-    carousel.addEventListener("mouseleave", startAutoplay);
+    carousel.addEventListener("mouseleave", () => {
+        // Only resume if user does not prefer reduced motion
+        if(!mediaQuery.matches){
+            startAutoplay();
+        }
+    });
+
+
+    // Watch for changes to reduced motion preference
+    mediaQuery.addEventListener("change", (event) => {
+        if(event.matches) {
+            stopAutoplay();
+        }
+        else {
+            startAutoplay();
+        }
+    });
 
     // Init
     updateCarousel(0);
-    startAutoplay();
+    if(!mediaQuery.matches){
+        startAutoplay();
+    }
 });

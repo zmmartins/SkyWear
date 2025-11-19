@@ -46,11 +46,10 @@ body {
   background: radial-gradient(circle at top, #020617, var(--color-bg));
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
 }
 
 main {
-    min-height: 100vh;
+    min-height: calc(100vh - var(--navbar-height));
     display: block;
 }
 
