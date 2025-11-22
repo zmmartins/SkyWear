@@ -4,7 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const carousel = document.querySelector("[data-carousel]");
     if (!carousel) return;
 
+    const hero = document.querySelector(".hero-carousel");
+    let currentHeroTheme = null;
+
     const track = carousel.querySelector("[data-carousel-track]");
+    if (!track) return;
     const slides = Array.from(track.children);
     const prevBtn = carousel.querySelector("[data-carousel-prev]");
     const nextBtn = carousel.querySelector("[data-carousel-next]");
@@ -17,7 +21,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const AUTO_PLAY_INTERVAL = 6000;
 
     // Respect reduced motion preference
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce");
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const art = document.querySelector(".carousel__art");
+    if(art){
+        function createOrUpdateExtraCircles() {
+            const width = window.innerWidth;
+
+            art.querySelectorAll(".carousel__art-extra-orb").forEach(el => el.remove());
+
+            const artRect = art.getBoundingClientRect();
+            const artDiameter = artRect.height;
+
+            let lastScale = 1.0;
+            const extraScales = [];
+
+            while(width > artDiameter * lastScale){
+                const nextScale = lastScale + 0.3;
+                extraScales.push(nextScale);
+                lastScale = nextScale;
+
+                if(extraScales.length > 10) break;
+            }
+            
+            extraScales.forEach(scale => {
+                const orb = document.createElement("div");
+                orb.classList.add("carousel__art-extra-orb");
+
+                orb.style.height = `${scale * 100}%`;
+                orb.style.aspectRatio = "1/1";
+
+                art.appendChild(orb);
+            });
+        }
+
+        createOrUpdateExtraCircles();
+
+        let resizeTimeout = null;
+        window.addEventListener("resize", ()=> {
+            if(resizeTimeout) clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                createOrUpdateExtraCircles();
+            }, 150);
+        });
+    }
 
     // If there is only ONE slide -> hide controls and stop here
     if(slideCount <= 1){
@@ -30,6 +77,15 @@ document.addEventListener("DOMContentLoaded", () => {
         slides.forEach((slide, i) => {
             slide.classList.toggle("is-active", i === 0);
         });
+
+        if(hero){
+            const activeSlide = slides[0];
+            const theme = activeSlide.dataset.heroTheme;
+            if(theme){
+                hero.classList.add(`hero-theme-${theme}`);
+                currentHeroTheme = theme;
+            }
+        }
 
         return; // no autoplay, no navigation needed
     }
@@ -57,7 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
         dots = Array.from(dotContainer.querySelectorAll(".carousel__dot"));
     }
 
-
     function updateCarousel(index) {
         currentIndex = (index + slideCount) % slideCount;
 
@@ -73,8 +128,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 const isActive = i === currentIndex;
                 dot.classList.toggle("is-active", isActive);
                 dot.setAttribute("aria-pressed", isActive ? "true" : "false");
-                
+                dot.setAttribute("aria-current", isActive ? "true" : "false");
             });
+        }
+
+        if(hero){
+            const activeSlide = slides[currentIndex];
+            const theme = activeSlide.dataset.heroTheme;
+
+            if(currentHeroTheme){
+                hero.classList.remove(`hero-theme-${currentHeroTheme}`);
+            }
+            if(theme){
+                hero.classList.add(`hero-theme-${theme}`);
+                currentHeroTheme = theme;
+            }
+            else{
+                currentHeroTheme = null;
+            }
         }
     }
 
@@ -104,16 +175,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Event listeners
     if (nextBtn) nextBtn.addEventListener("click", () => {
+        stopAutoplay();
         next();
     });
 
     if (prevBtn) prevBtn.addEventListener("click", () => {
+        stopAutoplay();
         prev();
     });
 
     if(dots.length){
         dots.forEach((dot, i) => {
             dot.addEventListener("click", () => {
+                stopAutoplay();
                 updateCarousel(i);
             });
         });
