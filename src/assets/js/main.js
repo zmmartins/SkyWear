@@ -23,14 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Respect reduced motion preference
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    const art = document.querySelector(".carousel__art");
-    if(art){
-        function createOrUpdateExtraCircles() {
+    const artElements = Array.from(document.querySelectorAll(".carousel__art"));
+    if(artElements.length){
+        function createOrUpdateExtraCircles(artEl) {
             const width = window.innerWidth;
 
-            art.querySelectorAll(".carousel__art-extra-orb").forEach(el => el.remove());
+            artEl.querySelectorAll(".carousel__art-extra-orb").forEach(el => el.remove());
 
-            const artRect = art.getBoundingClientRect();
+            const artRect = artEl.getBoundingClientRect();
             const artDiameter = artRect.height;
 
             let lastScale = 1.0;
@@ -51,18 +51,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 orb.style.height = `${scale * 100}%`;
                 orb.style.aspectRatio = "1/1";
 
-                art.appendChild(orb);
+                artEl.appendChild(orb);
             });
         }
 
-        createOrUpdateExtraCircles();
+        function updateAllArtCircles(){
+            artElements.forEach(createOrUpdateExtraCircles);
+        }
+
+        updateAllArtCircles();
 
         let resizeTimeout = null;
         window.addEventListener("resize", ()=> {
             if(resizeTimeout) clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                createOrUpdateExtraCircles();
-            }, 150);
+            resizeTimeout = setTimeout(updateAllArtCircles(), 150);
         });
     }
 
