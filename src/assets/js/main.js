@@ -10,8 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const track = carousel.querySelector("[data-carousel-track]");
     if (!track) return;
     const slides = Array.from(track.children);
-    const prevBtn = carousel.querySelector("[data-carousel-prev]");
-    const nextBtn = carousel.querySelector("[data-carousel-next]");
     
     const dotContainer = carousel.querySelector("[data-carousel-dots]");
     const slideCount = slides.length;
@@ -19,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentIndex = 0;
     let autoPlayId = null;
     const AUTO_PLAY_INTERVAL = 6000;
+    let isAnimating = false;
 
     // Respect reduced motion preference
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -64,14 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
         let resizeTimeout = null;
         window.addEventListener("resize", ()=> {
             if(resizeTimeout) clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(updateAllArtCircles(), 150);
+            resizeTimeout = setTimeout(updateAllArtCircles, 150);
         });
     }
 
     // If there is only ONE slide -> hide controls and stop here
     if(slideCount <= 1){
-        if(prevBtn) prevBtn.style.display = "none";
-        if(nextBtn) nextBtn.style.display = "none";
         if(dotContainer) dotContainer.style.display = "none";
 
         // Ensure the only slide is visible and centered
@@ -92,48 +89,161 @@ document.addEventListener("DOMContentLoaded", () => {
         return; // no autoplay, no navigation needed
     }
 
-    // ------- Create dots dynamically (for 2+ slides) -------
-    if (dotContainer) {
+    // ------- create 3 dots ------- //
+    let prevDot = null
+    let currentDot = null;
+    let nextDot = null;
+
+    if (dotContainer){
         dotContainer.innerHTML = "";
 
-        slides.forEach((_, index) => {
+        function createDot(position){
             const dot = document.createElement("button");
             dot.classList.add("carousel__dot");
             dot.setAttribute("type", "button");
-            dot.dataset.carouselDot = "";
+            dot.dataset.carouselDot = position;
 
-            if(index === 0){
-                dot.classList.add("is-active");
+            if(position == "current"){
+                dot.classList.add("carousel__dot--center", "is-active");
+                dot.setAttribute("aria-label", `Slide 1 of ${slideCount}`);
+                dot.setAttribute("aria-pressed", "true");
+                dot.setAttribute("aria-current", "true");
+            }
+            else{
+                dot.classList.add("carousel__dot--side");
+                dot.setAttribute("aria-label", position === "prev" ? "Previous slide" : "Next slide");
+                dot.setAttribute("aria-pressed", "false");
             }
 
-            dot.setAttribute("aria-label", `Go to slide ${index + 1}`);
-            dot.setAttribute("aria-pressed", index === 0 ? "true" : "false");
-
             dotContainer.appendChild(dot);
-        });
+            return dot;
+        }
 
-        dots = Array.from(dotContainer.querySelectorAll(".carousel__dot"));
+        prevDot = createDot("prev");
+        currentDot = createDot("current");
+        nextDot = createDot("next");
+
+        dots = [prevDot, currentDot, nextDot];
     }
 
-    function updateCarousel(index) {
-        currentIndex = (index + slideCount) % slideCount;
+    function animateSlideChange(fromIndex, toIndex, direction){
+        const currentSlide = slides[fromIndex];
+        const nextSlide = slides[toIndex];
 
-        const offset = -currentIndex * 100;
-        track.style.transform = `translateX(${offset}%)`;
+        if (!currentSlide || !nextSlide || currentSlide === nextSlide) return;
 
-        slides.forEach((slide, i) => {
-            slide.classList.toggle("is-active", i === currentIndex);
-        });
+        isAnimating = true;
 
-        if(dots.length){
-            dots.forEach((dot, i) => {
-                const isActive = i === currentIndex;
-                dot.classList.toggle("is-active", isActive);
-                dot.setAttribute("aria-pressed", isActive ? "true" : "false");
-                dot.setAttribute("aria-current", isActive ? "true" : "false");
+        const offsetOut = direction === "next" ? "-100%" : "100%";
+        const offsetInStart = direction === "next" ? "100%" : "-100%";
+
+        currentSlide.style.transition = "none";
+        nextSlide.style.transition = "none";
+
+        currentSlide.style.opacity = "1";
+        currentSlide.style.transform = "translateX(0)";
+
+        nextSlide.style.opacity = "0";
+        nextSlide.style.transform = `translateX(${offsetInStart})`;
+
+        // Force reflow so the browser picks up the initial styles
+        void currentSlide.offsetWidth;
+
+        // Apply transitions
+        const transitionSpec = "transform 0.6s ease, opacity 0.6s ease";
+        currentSlide.style.transition = transitionSpec;
+        nextSlide.style.transition = transitionSpec;
+        
+        // Animate to final positions
+        currentSlide.style.opacity = "0";
+        currentSlide.style.transform = `translateX(${offsetOut})`;
+        nextSlide.style.opacity = "1";
+        nextSlide.style.transform = "translateX(0)";
+
+        let finishedCount = 0;
+        function onDone(){
+            finishedCount++;
+            if (finishedCount < 2) return;
+
+            currentSlide.removeEventListener("transitionend", onDone);
+            nextSlide.removeEventListener("transitionend", onDone);
+
+            slides.forEach((slide, i) => {
+                const isActive = i === toIndex;
+                slide.classList.toggle("is-active", isActive);
+                slide.style.transition = "";
+                slide.style.opacity = isActive ? "1" : "0";
+                slide.style.transform = "translateX(0)";
+                slide.style.pointerEvents = isActive ? "auto" : "none";
+                slide.style.zIndex = isActive ? "1" : "0";
+            });
+
+            isAnimating = false;
+        }
+
+        currentSlide.addEventListener("transitionend", onDone);
+        nextSlide.addEventListener("transitionend", onDone);
+    }
+
+    function updateCarousel(index, direction = null) {
+        if (isAnimating && direction) return;
+        
+        const previousIndex = currentIndex;
+        const newIndex = (index + slideCount) % slideCount;
+
+        // If trying to go to same slide
+        if (previousIndex === newIndex && direction) return;
+
+        // Handle visual slide change
+        if (!mediaQuery.matches && direction){
+            animateSlideChange(previousIndex, newIndex, direction);
+        }
+        else{
+            slides.forEach((slide, i) =>{
+                const isActive = i === newIndex;
+                slide.classList.toggle("is-active", isActive);
+                slide.style.transition = "none";
+                slide.style.opacity = isActive ? "1" : "0";
+                slide.style.transform = "translateX(0)";
+                slide.style.pointerEvents = isActive ? "auto" : "none";
+                slide.style.zIndex = isActive ? "1" : "0";
             });
         }
 
+        // Update index after setting up the visuals
+        currentIndex = newIndex;
+
+
+        // Dots
+        if(dots.length){
+            dots.forEach((dot) => {
+                const isCenter = dot.dataset.carouselDot === "current";
+                dot.classList.toggle("is-active", isCenter);
+            });
+
+            if(currentDot){
+                const humanIndex = currentIndex + 1;
+                currentDot.setAttribute("aria-label", `Slide ${humanIndex} of ${slideCount}`);
+                currentDot.setAttribute("aria-pressed", "true");
+                currentDot.setAttribute("aria-current", "true");
+            }
+
+            if(prevDot){
+                const prevIndex = (currentIndex - 1 + slideCount) % slideCount;
+                prevDot.setAttribute("aria-label", `Go to slide ${prevIndex + 1}`);
+                prevDot.setAttribute("aria-pressed", "false");
+                prevDot.removeAttribute("aria-current");
+            }
+
+            if(nextDot){
+                const nextIndex = (currentIndex + 1) % slideCount;
+                nextDot.setAttribute("aria-label", `Go to slide ${nextIndex + 1}`);
+                nextDot.setAttribute("aria-pressed", "false");
+                nextDot.removeAttribute("aria-current");
+            }
+        }
+
+        // Hero theme
         if(hero){
             const activeSlide = slides[currentIndex];
             const theme = activeSlide.dataset.heroTheme;
@@ -152,11 +262,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function next() {
-        updateCarousel(currentIndex + 1);
+        updateCarousel(currentIndex + 1, "next");
     }
 
     function prev() {
-        updateCarousel(currentIndex - 1);
+        updateCarousel(currentIndex - 1, "prev");
     }
 
     function startAutoplay() {
@@ -175,23 +285,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Event listeners
-    if (nextBtn) nextBtn.addEventListener("click", () => {
-        stopAutoplay();
-        next();
-    });
 
-    if (prevBtn) prevBtn.addEventListener("click", () => {
-        stopAutoplay();
-        prev();
-    });
 
-    if(dots.length){
-        dots.forEach((dot, i) => {
-            dot.addEventListener("click", () => {
-                stopAutoplay();
-                updateCarousel(i);
-            });
+    if(prevDot){
+        prevDot.addEventListener("click", () => {
+            stopAutoplay();
+            prev();
+        });
+    }
+
+    if(nextDot){
+        nextDot.addEventListener("click", () => {
+            stopAutoplay();
+            next();
         });
     }
 
