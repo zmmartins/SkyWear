@@ -222,7 +222,7 @@
     z-index: 11;
     pointer-events: auto;
 
-    top: 6rem;
+    top: calc(6rem + var(--navbar-height));
     left: 4rem;
     right: auto;
     bottom: auto;
@@ -295,7 +295,7 @@
 @media (min-width: 1024px) and (max-width: 1199px){
     .carousel__info{
         left: 2rem;
-        top: 4rem;
+        top: calc(4rem + var(--navbar-height));
     }
 }
 
@@ -347,7 +347,9 @@
 
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
 
   border-radius: 50%;
   z-index: 0;
@@ -382,8 +384,10 @@
 
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+
     border-radius: 50%;
     z-index: 0;
 
@@ -413,7 +417,22 @@
 
 .carousel__art::before,
 .carousel__art::after {
-    transition: transform 0.35s ease;
+    transition: 
+        transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 0.5s ease;
+}
+
+.carousel__slide.is-active .carousel__art::before,
+.carousel__slide.is-active .carousel__art::after{
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+
+    transition-delay: 0.3s;
+}
+
+.carousel__art:hover::before,
+.carousel__art:hover::after{
+    transition-delay: 0s;
 }
 
 .outfit-stack{
