@@ -1,5 +1,3 @@
-// Simple carousel logic
-
 document.addEventListener("DOMContentLoaded", () => {
     const carousel = document.querySelector("[data-carousel]");
     if (!carousel) return;
@@ -13,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const dotContainer = carousel.querySelector("[data-carousel-dots]");
     const slideCount = slides.length;
-    let dots = [];
+    
     let currentIndex = 0;
     let autoPlayId = null;
     const AUTO_PLAY_INTERVAL = 6000;
@@ -22,11 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Respect reduced motion preference
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
+    // ART / ORB logic
     const artElements = Array.from(document.querySelectorAll(".carousel__art"));
     if(artElements.length){
         function createOrUpdateExtraCircles(artEl) {
             const width = window.innerWidth;
-
             artEl.querySelectorAll(".carousel__art-extra-orb").forEach(el => el.remove());
 
             const artRect = artEl.getBoundingClientRect();
@@ -39,17 +37,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const nextScale = lastScale + 0.3;
                 extraScales.push(nextScale);
                 lastScale = nextScale;
-
                 if(extraScales.length > 10) break;
             }
             
             extraScales.forEach(scale => {
                 const orb = document.createElement("div");
                 orb.classList.add("carousel__art-extra-orb");
-
                 orb.style.height = `${scale * 100}%`;
                 orb.style.aspectRatio = "1/1";
-
                 artEl.appendChild(orb);
             });
         }
@@ -85,45 +80,52 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentHeroTheme = theme;
             }
         }
-
-        return; // no autoplay, no navigation needed
+        return; 
     }
 
     // ------- create 3 dots ------- //
-    let prevDot = null
-    let currentDot = null;
-    let nextDot = null;
+    let dotElements = [];
 
     if (dotContainer){
         dotContainer.innerHTML = "";
 
-        function createDot(position){
+        for(let i = 0; i < 3; i++){
             const dot = document.createElement("button");
             dot.classList.add("carousel__dot");
             dot.setAttribute("type", "button");
-            dot.dataset.carouselDot = position;
 
-            if(position == "current"){
-                dot.classList.add("carousel__dot--center", "is-active");
-                dot.setAttribute("aria-label", `Slide 1 of ${slideCount}`);
-                dot.setAttribute("aria-pressed", "true");
+            dot.dataset.pos = i;
+
+            dot.addEventListener("click", ()=>{
+                const currentPos = parseInt(dot.dataset.pos);
+                if(currentPos === 0){
+                    stopAutoplay();
+                    prev();
+                }
+                else if(currentPos === 2){
+                    stopAutoplay();
+                    next();
+                }
+            });
+
+            dotContainer.appendChild(dot);
+            dotElements.push(dot);
+        }
+    }
+
+    function updateDotsVisuals(){
+        dotElements.forEach((dot, index) => {
+            dot.dataset.pos = index;
+
+            if(index === 1){
+                dot.setAttribute("aria-label", `Current Slide`);
                 dot.setAttribute("aria-current", "true");
             }
             else{
-                dot.classList.add("carousel__dot--side");
-                dot.setAttribute("aria-label", position === "prev" ? "Previous slide" : "Next slide");
-                dot.setAttribute("aria-pressed", "false");
+                dot.setAttribute("aria-label", index === 0 ? "Previous Slide" : "Next Slide");
+                dot.removeAttribute("aria-current");
             }
-
-            dotContainer.appendChild(dot);
-            return dot;
-        }
-
-        prevDot = createDot("prev");
-        currentDot = createDot("current");
-        nextDot = createDot("next");
-
-        dots = [prevDot, currentDot, nextDot];
+        });
     }
 
     function animateSlideChange(fromIndex, toIndex, direction){
@@ -146,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
         nextSlide.style.opacity = "0";
         nextSlide.style.transform = `translateX(${offsetInStart})`;
 
-        // Force reflow so the browser picks up the initial styles
+        // Force reflow
         void currentSlide.offsetWidth;
 
         // Apply transitions
@@ -154,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
         currentSlide.style.transition = transitionSpec;
         nextSlide.style.transition = transitionSpec;
         
-        // Animate to final positions
         currentSlide.style.opacity = "0";
         currentSlide.style.transform = `translateX(${offsetOut})`;
         nextSlide.style.opacity = "1";
@@ -191,7 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const previousIndex = currentIndex;
         const newIndex = (index + slideCount) % slideCount;
 
-        // If trying to go to same slide
         if (previousIndex === newIndex && direction) return;
 
         // Handle visual slide change
@@ -210,37 +210,20 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // Update index after setting up the visuals
         currentIndex = newIndex;
 
-
-        // Dots
-        if(dots.length){
-            dots.forEach((dot) => {
-                const isCenter = dot.dataset.carouselDot === "current";
-                dot.classList.toggle("is-active", isCenter);
-            });
-
-            if(currentDot){
-                const humanIndex = currentIndex + 1;
-                currentDot.setAttribute("aria-label", `Slide ${humanIndex} of ${slideCount}`);
-                currentDot.setAttribute("aria-pressed", "true");
-                currentDot.setAttribute("aria-current", "true");
+        // Dots (CORRIGIDO AQUI: dotElements em vez de dots)
+        if(dotElements.length){
+            if (direction === "next"){
+                const firstDot = dotElements.shift();
+                dotElements.push(firstDot);
+            }
+            else if(direction === "prev"){
+                const lastDot = dotElements.pop();
+                dotElements.unshift(lastDot);
             }
 
-            if(prevDot){
-                const prevIndex = (currentIndex - 1 + slideCount) % slideCount;
-                prevDot.setAttribute("aria-label", `Go to slide ${prevIndex + 1}`);
-                prevDot.setAttribute("aria-pressed", "false");
-                prevDot.removeAttribute("aria-current");
-            }
-
-            if(nextDot){
-                const nextIndex = (currentIndex + 1) % slideCount;
-                nextDot.setAttribute("aria-label", `Go to slide ${nextIndex + 1}`);
-                nextDot.setAttribute("aria-pressed", "false");
-                nextDot.removeAttribute("aria-current");
-            }
+            updateDotsVisuals();
         }
 
         // Hero theme
@@ -254,8 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if(theme){
                 hero.classList.add(`hero-theme-${theme}`);
                 currentHeroTheme = theme;
-            }
-            else{
+            } else {
                 currentHeroTheme = null;
             }
         }
@@ -270,11 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function startAutoplay() {
-        // Don't auto play if user prefers reduced motion
         if(mediaQuery.matches) return;
-        // Don't create a second timer if one is already running
         if(autoPlayId !== null) return;
-
         autoPlayId = setInterval(next, AUTO_PLAY_INTERVAL);
     }
 
@@ -285,40 +264,59 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-
-
-    if(prevDot){
-        prevDot.addEventListener("click", () => {
-            stopAutoplay();
-            prev();
-        });
-    }
-
-    if(nextDot){
-        nextDot.addEventListener("click", () => {
-            stopAutoplay();
-            next();
-        });
-    }
-
     // Pause on hover
     carousel.addEventListener("mouseenter", stopAutoplay);
     carousel.addEventListener("mouseleave", () => {
-        // Only resume if user does not prefer reduced motion
         if(!mediaQuery.matches){
             startAutoplay();
         }
     });
 
+    // -------- TOUCH / SWIPE SUPPORT -------- //
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const MIN_SWIPE_DISTANCE = 50;
 
-    // Watch for changes to reduced motion preference
-    mediaQuery.addEventListener("change", (event) => {
-        if(event.matches) {
+    carousel.addEventListener("touchstart", (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    carousel.addEventListener("touchend", (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe(){
+        const diff = touchStartX - touchEndX;
+
+        if(Math.abs(diff) > MIN_SWIPE_DISTANCE){
             stopAutoplay();
+
+            if(diff > 0){
+                next();
+            }
+            else{
+                prev();
+            }
         }
-        else {
-            startAutoplay();
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if(e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+        if(e.key === "ArrowLeft"){
+            stopAutoplay();
+            prev();
         }
+        else if(e.key === "ArrowRight"){
+            stopAutoplay();
+            next();
+        }
+    });
+
+    mediaQuery.addEventListener("change", (event) => {
+        if(event.matches) stopAutoplay();
+        else startAutoplay();
     });
 
     // Init
