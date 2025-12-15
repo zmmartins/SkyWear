@@ -1,7 +1,6 @@
 import React, {useState, useEffect, useRef, useCallback} from "react";
 import "./Hero.css";
 
-// Moved outside component to avoid re-declaration on every render
 const SLIDES = [
     { id: 0, theme: "winter" },
     { id: 1, theme: "summer" }
@@ -14,7 +13,9 @@ export default function Hero(){
         direction: "next"
     });
 
-    const [heroTheme, setHeroTheme] = useState("winter");
+    // We don't need 'heroTheme' state for the parent anymore, 
+    // but we can keep the variable if you use it elsewhere. 
+    // I've removed it from the <section> className below.
     const [extraOrbs, setExtraOrbs] = useState(3);
     const [isPaused, setIsPaused] = useState(false);
 
@@ -77,10 +78,10 @@ export default function Hero(){
                 direction: direction
             };
         });
-
-        setHeroTheme(SLIDES[newIndex].theme);
+        
+        // Removed setHeroTheme here as it's now handled per-slide
         animateDots(direction, newIndex);
-    }, [animateDots]); // Added animateDots to deps
+    }, [animateDots]);
 
     const nextSlide = useCallback(() => {
         const nextIndex = (slideState.current + 1) % SLIDES.length;
@@ -151,6 +152,7 @@ export default function Hero(){
         let className = "carousel__slide";
         if (index === slideState.current){
             className += " is-active";
+            // We keep the direction classes, but we'll use them differently in CSS
             if(slideState.prev !== null){
                 className += slideState.direction === "next"
                     ? " slide-enter-from-right" : " slide-enter-from-left";
@@ -167,7 +169,7 @@ export default function Hero(){
 
     return (
         <section 
-            className={`hero-carousel hero-theme-${heroTheme}`}
+            className="hero-carousel" // Removed hero-theme logic here
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             onTouchStart={handleTouchStart}
@@ -177,6 +179,9 @@ export default function Hero(){
                 <div className="carousel__track">
                     {/* SLIDE 1: WINTER */}
                     <article className={getSlideClass(0)}>
+                        {/* New Background Element */}
+                        <div className="slide-bg" data-theme="winter"></div>
+                        
                         <div className="carousel__layout">
                             <aside className="carousel__info">
                                 <p className="carousel__badge">Bundle 1</p>
@@ -218,6 +223,9 @@ export default function Hero(){
 
                     {/* SLIDE 2: SUMMER */}
                     <article className={getSlideClass(1)}>
+                         {/* New Background Element */}
+                         <div className="slide-bg" data-theme="summer"></div>
+
                         <div className="carousel__layout">
                         <aside className="carousel__info">
                             <p className="carousel__badge">Bundle 2</p>

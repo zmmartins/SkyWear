@@ -5,48 +5,65 @@
     width: 100%;
     position: relative;
     overflow: hidden;
-
-    /* Pull up to cover behind the navbar */
     margin-top: calc(-1 * var(--navbar-height));
-    padding-top: var(--navbar-height);
-
+    
+    z-index: 0;
+    /* Default background fallback (e.g. while loading) */
     background: transparent;
+}
+
+.hero-carousel:has(.carousel__slide.is-active .slide-bg[data-theme="winter"]){
+    --hero-dot-color: #6a94d4;
+}
+
+.hero-carousel:has(.carousel__slide.is-active .slide-bg[data-theme="summer"]){
+    --hero-dot-color: #ff8e4f;
 }
 
 .hero-carousel::before{
     content: "";
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 1; /* Increased z-index so overlay is above backgrounds */
     pointer-events: none;
     background: radial-gradient(circle at top, rgba(15, 23, 42, 0.4), transparent);
 }
 
-.hero-carousel.hero-theme-winter{
-    --hero-dot-color: #6a94d4;
+/* ---------- SLIDE BACKGROUNDS ---------- */
 
+.slide-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index:0;
+    background-size: cover;
+    background-position: center;
+}
+
+.slide-bg[data-theme="winter"] {
+    --hero-dot-color: #6a94d4;
     background: radial-gradient(
         circle at top,
         #dff3ff 0%,
         #b7d8f5 35%,
         #8bb8e8 70%,
         #6a94d4 100%
-    )
+    );
 }
 
-.hero-carousel.hero-theme-summer{
+.slide-bg[data-theme="summer"] {
     --hero-dot-color: #ff8e4f;
-
     background: radial-gradient(
         circle at top,
-        #ffe9b5 0%,     /* light golden sun */
-        #ffd08a 30%,    /* warm peach */
-        #ffac6f 65%,    /* soft orange */
-        #ff8e4f 100%    /* richer summer orange */
-    )
+        #ffe9b5 0%,
+        #ffd08a 30%,
+        #ffac6f 65%,
+        #ff8e4f 100%
+    );
 }
 
-/* ---------- CAROUSEL ---------- */
+/* ---------- CAROUSEL LOGIC ---------- */
 
 .carousel {
     position: relative;
@@ -64,31 +81,33 @@
 .carousel__slide {
     position: absolute;
     inset: 0;
-    overflow: hidden;
-
     width: 100%;
     height: 100%;
-    background-size: cover;
-    background-position: center;
-
+    
     display: flex;
     align-items: center;
     justify-content: center;
 
+    /* Logic: 
+       We no longer translate the whole slide container.
+       We only toggle visibility and z-index here.
+       Transformations happen on children. 
+    */
     opacity: 0;
     z-index: 0;
     pointer-events: none;
-    transform: translateX(0);
 }
 
 .carousel__slide.is-active{
     opacity: 1;
     pointer-events: auto;
-    z-index: 10;
+    z-index: 9;
 }
+
+/* The exiting slide sits below the active one to be "eaten" by the circle reveal */
 .carousel__slide.is-exiting{
     opacity: 1;
-    z-index: 5;
+    z-index: 5; 
     pointer-events: none;
 }
 
@@ -96,55 +115,107 @@
     display: none;
 }
 
-/* Animation Classes */
-.slide-enter-from-right{
-    animation: slideInRight 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+/* ---------- ANIMATIONS SPLIT ---------- */
+
+/* 1. BACKGROUND ANIMATION: Circular Reveal */
+@keyframes circleExpand {
+    0% { clip-path: circle(0% at 50% 50%); }
+    100% { clip-path: circle(150% at 50% 50%); }
 }
 
-.slide-exit-to-left{
-    animation: slideOutLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+.carousel__slide.is-active .slide-bg {
+    /* Adjust duration here if you want the "blow out" faster or slower */
+    animation: circleExpand 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-.slide-enter-from-left{
-    animation: slideInLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+/* 2. ART ANIMATION: Directional Slides */
+/* We target .carousel__art specifically so it slides independently */
+
+.slide-enter-from-right .carousel__art {
+    animation: slideInRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.slide-exit-to-right{
-    animation: slideOutRight 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+.slide-exit-to-left .carousel__art {
+    animation: slideOutLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
+
+.slide-enter-from-left .carousel__art {
+    animation: slideInLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.slide-exit-to-right .carousel__art {
+    animation: slideOutRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* 3. INFO ANIMATION: Fade In From Bottom */
+/* This animation runs regardless of slide direction (left or right) */
+
+@keyframes fadeInUp {
+    0% { 
+        opacity: 0; 
+        transform: translateY(40px); /* Start lower down */
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* When the slide becomes active, trigger the fade up on the info box */
+.carousel__slide.is-active .carousel__info {
+    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    /* Add a small delay so the background "explodes" first, then text appears */
+    animation-delay: 0.2s;
+    opacity: 0; /* Start hidden before animation kicks in */
+}
+
+/* When the slide exits, fade the text out quickly */
+.carousel__slide.is-exiting .carousel__info {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* ---------- KEYFRAMES FOR ART ---------- */
+/* Using 50vw prevents horizontal scrollbars that 100vw might cause */
 
 @keyframes slideInRight{
-    0% { transform: translateX(100%); opacity: 1; }
+    0% { transform: translateX(50vw); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes slideOutLeft {
     0% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(-100%); opacity: 0; } 
+    100% { transform: translateX(-50vw); opacity: 0; } 
 }
 
 @keyframes slideInLeft{
-    0% { transform: translateX(-100%); opacity: 1 }
+    0% { transform: translateX(-50vw); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes slideOutRight {
     0% { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(100%); opacity: 0; } 
+    100% { transform: translateX(50vw); opacity: 0; } 
 }
 
-/* Layout within slide */
+
+/* ---------- LAYOUT (Fixed) ---------- */
 .carousel__layout{
     position: relative;
     width: 100%;
     height: 100%;
-    padding: 0 2rem;
+    padding: var(--navbar-height) 2rem 0;
     display: flex;
     align-items:center;
     justify-content: center;
     gap: 2.5rem;
+    z-index: 5; 
     transition: padding 0.3s ease, gap 0.3s ease;
+    /* REMOVED the transition-delay: 10000ms here */
 }
+
+/* ... REMAINING STYLES (Info, Art, Clothes) STAY EXACTLY THE SAME ... */
+/* ... Paste the rest of your original css starting from .carousel__info ... */
 
 .carousel__info{
     position: absolute;
@@ -219,6 +290,7 @@
     font-size: 1rem;
     color: white;
 }
+
 
 @media (min-width: 1024px) and (max-width: 1199px){
     .carousel__info{
