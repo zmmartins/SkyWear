@@ -12,13 +12,8 @@
     background: transparent;
 }
 
-.hero-carousel:has(.carousel__slide.is-active .slide-bg[data-theme="winter"]){
-    --hero-dot-color: #6a94d4;
-}
-
-.hero-carousel:has(.carousel__slide.is-active .slide-bg[data-theme="summer"]){
-    --hero-dot-color: #ff8e4f;
-}
+.hero-carousel[data-theme="winter"] {--hero-dot-color: #6a94d4;}
+.hero-carousel[data-theme="summer"] {--hero-dot-color: #ff8e4f;}
 
 .hero-carousel::before{
     content: "";
@@ -30,7 +25,6 @@
 }
 
 /* ---------- SLIDE BACKGROUNDS ---------- */
-
 .slide-bg {
     position: absolute;
     inset: 0;
@@ -42,7 +36,6 @@
 }
 
 .slide-bg[data-theme="winter"] {
-    --hero-dot-color: #6a94d4;
     background: radial-gradient(
         circle at top,
         #dff3ff 0%,
@@ -53,7 +46,6 @@
 }
 
 .slide-bg[data-theme="summer"] {
-    --hero-dot-color: #ff8e4f;
     background: radial-gradient(
         circle at top,
         #ffe9b5 0%,
@@ -64,13 +56,13 @@
 }
 
 /* ---------- CAROUSEL LOGIC ---------- */
-
 .carousel {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
     z-index: 1;
+    contain: layout paint;
 }
 
 .carousel__track {
@@ -88,14 +80,10 @@
     align-items: center;
     justify-content: center;
 
-    /* Logic: 
-       We no longer translate the whole slide container.
-       We only toggle visibility and z-index here.
-       Transformations happen on children. 
-    */
     opacity: 0;
     z-index: 0;
     pointer-events: none;
+    contain: layout paint;
 }
 
 .carousel__slide.is-active{
@@ -104,7 +92,6 @@
     z-index: 9;
 }
 
-/* The exiting slide sits below the active one to be "eaten" by the circle reveal */
 .carousel__slide.is-exiting{
     opacity: 1;
     z-index: 5; 
@@ -116,7 +103,6 @@
 }
 
 /* ---------- ANIMATIONS SPLIT ---------- */
-
 /* 1. BACKGROUND ANIMATION: Circular Reveal */
 @keyframes circleExpand {
     0% { clip-path: circle(0% at 50% 50%); }
@@ -124,13 +110,12 @@
 }
 
 .carousel__slide.is-active .slide-bg {
+    will-change: clip-path;
     /* Adjust duration here if you want the "blow out" faster or slower */
     animation: circleExpand 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 /* 2. ART ANIMATION: Directional Slides */
-/* We target .carousel__art specifically so it slides independently */
-
 .slide-enter-from-right .carousel__art {
     animation: slideInRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
@@ -148,8 +133,6 @@
 }
 
 /* 3. INFO ANIMATION: Fade In From Bottom */
-/* This animation runs regardless of slide direction (left or right) */
-
 @keyframes fadeInUp {
     0% { 
         opacity: 0; 
@@ -177,7 +160,6 @@
 
 /* ---------- KEYFRAMES FOR ART ---------- */
 /* Using 50vw prevents horizontal scrollbars that 100vw might cause */
-
 @keyframes slideInRight{
     0% { transform: translateX(50vw); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
@@ -198,7 +180,6 @@
     100% { transform: translateX(50vw); opacity: 0; } 
 }
 
-
 /* ---------- LAYOUT (Fixed) ---------- */
 .carousel__layout{
     position: relative;
@@ -213,9 +194,6 @@
     transition: padding 0.3s ease, gap 0.3s ease;
     /* REMOVED the transition-delay: 10000ms here */
 }
-
-/* ... REMAINING STYLES (Info, Art, Clothes) STAY EXACTLY THE SAME ... */
-/* ... Paste the rest of your original css starting from .carousel__info ... */
 
 .carousel__info{
     position: absolute;
@@ -233,12 +211,11 @@
     flex-direction: column;
     align-items: flex-start;
     height: auto;
-    max-width: 550px;
+    max-width: 450px;
     text-align: left;
     gap: 0;
 
     color: white;
-    max-width: 450px;
 
     transition:
         left 0.35s ease,
@@ -286,7 +263,6 @@
     color: white;
 }
 
-
 @media (min-width: 1024px) and (max-width: 1199px){
     .carousel__info{
         left: 2rem;
@@ -295,7 +271,6 @@
 }
 
 /* ---------- ART / CLOTHING STACK ---------- */
-
 .carousel__art {
     position: relative;
     z-index: 10;
@@ -319,6 +294,8 @@
     left: 50%;
     transform: translate(-50%, -50%);
 
+    aspect-ratio: 1/1;
+    
     border: 1px solid rgba(255, 255, 255, 0.35);
     
     opacity: 0.7;
@@ -526,15 +503,7 @@
 .carousel__art:hover .alt-item--pants2 { transform: translate(-100px); }
 .carousel__art:hover .alt-item--shorts1{ transform: translate(100px); }
 
-@media (prefers-reduced-motion: reduce){
-    .carousel__art:hover .alt-item{
-        transform: none;
-        transition: none;
-    }
-}
-
 /* ---------- ARROWS & CONTROLS ---------- */
-
 .carousel__arrow{
     position: absolute;
     top: 50%;
@@ -639,4 +608,12 @@
 .carousel__dot[data-pos="2"]:hover{
     background: rgba(255, 255, 255, 0.5);
     border-color: white;
+}
+
+@media (prefers-reduced-motion: reduce){
+    .hero-carousel * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
 }

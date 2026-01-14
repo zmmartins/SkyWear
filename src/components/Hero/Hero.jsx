@@ -1,10 +1,14 @@
-import React, {useState, useEffect, useRef, useCallback} from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import "./Hero.css";
 
 const SLIDES = [
     { id: 0, theme: "winter" },
     { id: 1, theme: "summer" }
 ];
+
+const AUTOPLAY_MS = 6000;
+const DOT_ANIM_MS = 500;
+const SWIPE_THRESHOLD_PX = 50;
 
 export default function Hero(){
     const [slideState, setSlideState] = useState({
@@ -13,18 +17,17 @@ export default function Hero(){
         direction: "next"
     });
 
-    // We don't need 'heroTheme' state for the parent anymore, 
-    // but we can keep the variable if you use it elsewhere. 
-    // I've removed it from the <section> className below.
     const [extraOrbs, setExtraOrbs] = useState(3);
     const [isPaused, setIsPaused] = useState(false);
 
     const timerRef = useRef(null);
-    const touchStartX = useRef(0);
-    const touchEndX = useRef(0);
-    
-    const DOT_ANIM_MS = 500; 
     const dotTimerRef = useRef(null);
+    const touchStartX = useRef(0);
+    
+    const orbSizes = useMemo(
+        () => Array.from({ length: extraOrbs }, (_, i) => 130 + i * 30),
+        [extraOrbs]
+    );
 
     const buildWindow = useCallback((center) => {
         const prev = (center - 1 + SLIDES.length) % SLIDES.length;
@@ -57,17 +60,17 @@ export default function Hero(){
             const w = buildWindow(newCenter);
             setDots((ds) =>
                 ds.map((d) =>
-                    d.pos === 0 ? { ...d, slideIndex: w.prev }
-                    : d.pos === 1 ? { ...d, slideIndex: w.center }
-                    : { ...d, slideIndex: w.next }
+                    d.pos === 0 
+                        ? { ...d, slideIndex: w.prev }
+                        : d.pos === 1 
+                            ? { ...d, slideIndex: w.center }
+                            : { ...d, slideIndex: w.next }
                 )
             );
         }, DOT_ANIM_MS);
     }, [buildWindow]);
 
-    useEffect(() => {
-        return () => clearTimeout(dotTimerRef.current);
-    }, []);
+    useEffect(() => () => clearTimeout(dotTimerRef.current), []);
 
     const changeSlide = useCallback((newIndex, direction) => {
         setSlideState(prevState => {
@@ -78,8 +81,6 @@ export default function Hero(){
                 direction: direction
             };
         });
-        
-        // Removed setHeroTheme here as it's now handled per-slide
         animateDots(direction, newIndex);
     }, [animateDots]);
 
@@ -93,10 +94,12 @@ export default function Hero(){
         changeSlide(prevIndex, "prev");
     }, [slideState.current, changeSlide]);
 
+    const activeTheme = SLIDES[slideState.current]?.theme ?? "winter";
+
     // Autoplay
     useEffect(() => {
         if (isPaused) return;
-        timerRef.current = setInterval(nextSlide, 6000);
+        timerRef.current = setInterval(nextSlide, AUTOPLAY_MS);
         return () => clearInterval(timerRef.current);
     }, [isPaused, nextSlide]);
 
@@ -119,9 +122,12 @@ export default function Hero(){
 
     // Orbs Calculation
     useEffect(() => {
+        let rafId = 0;
+
         const calculateOrbs = () => {
             const artDiameter = 360;
             const width = window.innerWidth;
+
             let lastScale = 1.0;
             let count = 0;
             while (width > artDiameter * lastScale && count < 10){
@@ -130,46 +136,59 @@ export default function Hero(){
             }
             setExtraOrbs(Math.max(3, count));
         };
+
+        const onResize = () => {
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(calculateOrbs);
+        }
+
         calculateOrbs();
-        window.addEventListener("resize", calculateOrbs);
-        return () => window.removeEventListener("resize", calculateOrbs);
+        window.addEventListener("resize", onResize);
+        return () => {
+            cancelAnimationFrame(rafId);
+            window.removeEventListener("resize", onResize);
+        };
     }, []);
 
     // Swipe Logic
-    const handleTouchStart = (e) => {
+    const handleTouchStart = useCallback((e) => {
         touchStartX.current = e.changedTouches[0].screenX;
-    };
-    const handleTouchEnd = (e) =>{
-        touchEndX.current = e.changedTouches[0].screenX;
-        const diff = touchStartX.current - touchEndX.current;
-        if(Math.abs(diff) > 50){
+    }, []);
+    const handleTouchEnd = useCallback((e) => {
+        const endX = e.changedTouches[0].screenX;
+        const diff = touchStartX.current - endX;
+
+        if(Math.abs(diff) > SWIPE_THRESHOLD_PX){
             setIsPaused(true);
             diff > 0 ? nextSlide() : prevSlide();
         }
-    };
+    }, [nextSlide, prevSlide]);
 
-    const getSlideClass = (index) => {
+    const getSlideClass = useCallback((index) => {
         let className = "carousel__slide";
         if (index === slideState.current){
             className += " is-active";
             // We keep the direction classes, but we'll use them differently in CSS
             if(slideState.prev !== null){
                 className += slideState.direction === "next"
-                    ? " slide-enter-from-right" : " slide-enter-from-left";
+                    ? " slide-enter-from-right" 
+                    : " slide-enter-from-left";
             }
         } else if (index === slideState.prev){
             className += " is-exiting";
             className += slideState.direction === "next"
-                ? " slide-exit-to-left" : " slide-exit-to-right";
+                ? " slide-exit-to-left" 
+                : " slide-exit-to-right";
         } else {
             className += " is-hidden";
         }
         return className;
-    }
+    }, [slideState]);
 
     return (
         <section 
-            className="hero-carousel" // Removed hero-theme logic here
+            className="hero-carousel" 
+            data-theme={activeTheme}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             onTouchStart={handleTouchStart}
@@ -187,34 +206,88 @@ export default function Hero(){
                                 <p className="carousel__badge">Bundle 1</p>
                                 <h1 className="carousel__title">Winter Bundle</h1>
                                 <div className="carousel__meta">
-                                    <span className="carousel__pieces"><span className="num_pieces mono">8</span> pieces</span>
+                                    <span className="carousel__pieces">
+                                        <span className="num_pieces mono">8</span> pieces
+                                    </span>
                                     <span className="carousel__meta-dot">•</span>
                                     <span className="carousel__price mono">$150</span>
                                 </div>
                             </aside>
 
                             <div className="carousel__art">
-                                {[...Array(extraOrbs)].map((_, i) => (
-                                    <div key={i} className="carousel__art-extra-orb" style={{ height: `${130 + (i * 30)}%`, aspectRatio: "1/1"}}></div>
+                                { orbSizes.map((h, i) => (
+                                    <div key={i} className="carousel__art-extra-orb" style={{ height: `${h}%`}} />
                                 ))}
+
                                 <div className="outfit-stack">
                                     <div className="clothing-piece clothing-piece--pants">
-                                        <img src="/assets/img/winter bundle/pants1.png" className="main" alt="Pants" />
-                                        <img src="/assets/img/winter bundle/pants2.png" className="alt-item alt-item--pants1" alt="Alt pants" />
+                                        <img 
+                                            src="/assets/img/winter bundle/pants1.png" 
+                                            className="main" 
+                                            alt="Pants"
+                                            decoding="async"
+                                            loading="eager"
+                                            fetchPriority="high"
+                                        />
+                                        <img 
+                                            src="/assets/img/winter bundle/pants2.png" 
+                                            className="alt-item alt-item--pants1" 
+                                            alt="Alt pants"
+                                            decoding="async"
+                                            loading="lazy" 
+                                        />
                                     </div>
                                     <div className="clothing-piece clothing-piece--hoodie">
-                                        <img src="/assets/img/winter bundle/hoodie1.png" className="alt-item alt-item--hoodie1" alt="Hoodie 1" />
-                                        <img src="/assets/img/winter bundle/hoodie2.png" className="alt-item alt-item--hoodie2" alt="Hoodie 2" />
+                                        <img 
+                                            src="/assets/img/winter bundle/hoodie1.png" 
+                                            className="alt-item alt-item--hoodie1" 
+                                            alt="Hoodie 1"
+                                            decoding="async"
+                                            loading="lazy"
+                                        />
+                                        <img 
+                                            src="/assets/img/winter bundle/hoodie2.png" 
+                                            className="alt-item alt-item--hoodie2" 
+                                            alt="Hoodie 2"
+                                            decoding="async"
+                                            loading="lazy" 
+                                        />
                                     </div>
                                     <div className="clothing-piece clothing-piece--tshirt">
-                                        <img src="/assets/img/winter bundle/tshirt1.png" className="alt-item alt-item--tshirt1" alt="Tshirt 1" />
-                                        <img src="/assets/img/winter bundle/tshirt2.png" className="alt-item alt-item--tshirt2" alt="Tshirt 2" />
+                                        <img 
+                                            src="/assets/img/winter bundle/tshirt1.png" 
+                                            className="alt-item alt-item--tshirt1" 
+                                            alt="Tshirt 1"
+                                            decoding="async"
+                                            loading="lazy" 
+                                        />
+                                        <img 
+                                            src="/assets/img/winter bundle/tshirt2.png" 
+                                            className="alt-item alt-item--tshirt2" 
+                                            alt="Tshirt 2"
+                                            decoding="async"
+                                            loading="lazy" 
+                                        />
                                     </div>
                                     <div className="clothing-piece clothing-piece--jacket">
-                                        <img src="/assets/img/winter bundle/jacket.png" className="main" alt="Jacket" />
+                                        <img 
+                                            src="/assets/img/winter bundle/jacket.png" 
+                                            className="main" 
+                                            alt="Jacket"
+                                            decoding="async"
+                                            loading="eager"
+                                            fetchPriority="high" 
+                                        />
                                     </div>
                                     <div className="clothing-piece clothing-piece--beanie">
-                                        <img src="/assets/img/winter bundle/beanie.png" className="main" alt="Beanie" />
+                                        <img 
+                                            src="/assets/img/winter bundle/beanie.png" 
+                                            className="main" 
+                                            alt="Beanie" 
+                                            decoding="async"
+                                            loading="eager"
+                                            fetchPriority="high"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -231,37 +304,96 @@ export default function Hero(){
                             <p className="carousel__badge">Bundle 2</p>
                             <h1 className="carousel__title">Summer Bundle</h1>
                             <div className="carousel__meta">
-                            <span className="carousel__pieces"><span className="num_pieces mono">9</span> pieces</span>
+                            <span className="carousel__pieces">
+                                <span className="num_pieces mono">9</span> pieces
+                            </span>
                             <span className="carousel__meta-dot">•</span>
                             <span className="carousel__price mono">$150</span>
                             </div>
                         </aside>
 
                         <div className="carousel__art">
-                            {[...Array(extraOrbs)].map((_, i) => (
-                                <div key={i} className="carousel__art-extra-orb" style={{ height: `${130 + (i * 30)}%`, aspectRatio: "1/1" }}></div>
+                            {orbSizes.map((h, i) => (
+                                <div key={i} className="carousel__art-extra-orb" style={{height: `${h}%` }} />
                             ))}
                             <div className="outfit-stack">
                                 <div className="clothing-piece clothing-piece--pants">
-                                    <img src="/assets/img/summer bundle/pants.png" className="alt-item alt-item--pants2" alt="Pants" />
+                                    <img 
+                                        src="/assets/img/summer bundle/pants.png" 
+                                        className="alt-item alt-item--pants2" 
+                                        alt="Pants" 
+                                        decoding="async"
+                                        loading="lazy"
+                                    />
                                 </div>
                                 <div className="clothing-piece clothing-piece--shorts">
-                                    <img src="/assets/img/summer bundle/shorts1.png" className="main" alt="Shorts" />
-                                    <img src="/assets/img/summer bundle/shorts2.png" className="alt-item alt-item--shorts1" alt="Alt shorts" />
+                                    <img 
+                                        src="/assets/img/summer bundle/shorts1.png" 
+                                        className="main" 
+                                        alt="Shorts"
+                                        decoding="async"
+                                        loading="eager"
+                                        fetchPriority="high" 
+                                    />
+                                    <img 
+                                        src="/assets/img/summer bundle/shorts2.png" 
+                                        className="alt-item alt-item--shorts1" 
+                                        alt="Alt shorts"
+                                        decoding="async"
+                                        loading="lazy" 
+                                    />
                                 </div>
                                 <div className="clothing-piece clothing-piece--sweater">
-                                    <img src="/assets/img/summer bundle/sweater.png" className="alt-item alt-item--sweater1" alt="Sweater" />
+                                    <img 
+                                        src="/assets/img/summer bundle/sweater.png" 
+                                        className="alt-item alt-item--sweater1" 
+                                        alt="Sweater"
+                                        decoding="async"
+                                        loading="lazy" 
+                                    />
                                 </div>
                                 <div className="clothing-piece clothing-piece--tshirt">
-                                    <img src="/assets/img/summer bundle/tshirt1.png" className="alt-item alt-item--tshirt1" alt="Tshirt" />
-                                    <img src="/assets/img/summer bundle/tshirt2.png" className="alt-item alt-item--tshirt2" alt="Tshirt" />
+                                    <img 
+                                        src="/assets/img/summer bundle/tshirt1.png" 
+                                        className="alt-item alt-item--tshirt1" 
+                                        alt="Tshirt"
+                                        decoding="async"
+                                        loading="lazy" 
+                                    />
+                                    <img 
+                                        src="/assets/img/summer bundle/tshirt2.png" 
+                                        className="alt-item alt-item--tshirt2" 
+                                        alt="Tshirt"
+                                        decoding="async"
+                                        loading="lazy" 
+                                    />
                                 </div>
                                 <div className="clothing-piece clothing-piece--shirt">
-                                    <img src="/assets/img/summer bundle/shirt.png" className="main" alt="Shirt" />
+                                    <img 
+                                        src="/assets/img/summer bundle/shirt.png" 
+                                        className="main" 
+                                        alt="Shirt"
+                                        decoding="async"
+                                        loading="eager"
+                                        fetchPriority="high" 
+                                    />
                                 </div>
                                 <div className="clothing-piece clothing-piece--hat">
-                                    <img src="/assets/img/summer bundle/hat1.png" className="alt-item alt-item--hat1" alt="Hat 1" />
-                                    <img src="/assets/img/summer bundle/hat2.png" className="main" alt="Hat" />
+                                    <img 
+                                        src="/assets/img/summer bundle/hat1.png" 
+                                        className="alt-item alt-item--hat1" 
+                                        alt="Hat 1"
+                                        decoding="async"
+                                        loading="lazy" 
+                                    />
+                                    <img 
+                                        src="/assets/img/summer bundle/hat2.png" 
+                                        className="main" 
+                                        alt="Hat"
+                                        decoding="async"
+                                        loading="eager"
+                                        fetchPriority="high" 
+                                    />
                                 </div>
                             </div>
                         </div>
