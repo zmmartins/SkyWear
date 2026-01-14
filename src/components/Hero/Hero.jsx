@@ -187,9 +187,9 @@ export default function Hero(){
                                 <p className="carousel__badge">Bundle 1</p>
                                 <h1 className="carousel__title">Winter Bundle</h1>
                                 <div className="carousel__meta">
-                                    <span className="carousel__pieces">8 pieces</span>
+                                    <span className="carousel__pieces"><span className="num_pieces mono">8</span> pieces</span>
                                     <span className="carousel__meta-dot">•</span>
-                                    <span className="carousel__price">$150</span>
+                                    <span className="carousel__price mono">$150</span>
                                 </div>
                             </aside>
 
@@ -231,9 +231,9 @@ export default function Hero(){
                             <p className="carousel__badge">Bundle 2</p>
                             <h1 className="carousel__title">Summer Bundle</h1>
                             <div className="carousel__meta">
-                            <span className="carousel__pieces">9 pieces</span>
+                            <span className="carousel__pieces"><span className="num_pieces mono">9</span> pieces</span>
                             <span className="carousel__meta-dot">•</span>
-                            <span className="carousel__price">$150</span>
+                            <span className="carousel__price mono">$150</span>
                             </div>
                         </aside>
 

@@ -255,7 +255,6 @@
 .carousel__title{
     font-size: clamp(2.5rem, 2rem + 2vw, 4rem);
     line-height: 1.1;
-    font-weight: 750;
     color: white;
     text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 }
@@ -271,16 +270,12 @@
 }
 
 .carousel__pieces{
-    text-transform: uppercase;
-    letter-spacing: 0.12rem;
     font-size: 1rem;
-    font-weight: bold;
     color: var(--color-accent);
     border-radius: var(--radius-pill);
     padding: 0.35rem 0.85rem;
     background-color: white;
 }
-
 .carousel__meta-dot{
     opacity: 0.6;
 }
