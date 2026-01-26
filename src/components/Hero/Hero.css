@@ -12,8 +12,14 @@
     background: transparent;
 }
 
-.hero-carousel[data-theme="winter"] {--hero-dot-color: #6a94d4;}
-.hero-carousel[data-theme="summer"] {--hero-dot-color: #ff8e4f;}
+.hero-carousel[data-theme="winter"] {
+    --hero-dot-color: #6a94d4;
+    --hero-dot-glow: rgba(106, 148, 212, 0.35);
+}
+.hero-carousel[data-theme="summer"] {
+    --hero-dot-color: #ff8e4f;
+    --hero-dot-glow: rgba(255, 142, 79, 0.35);
+}
 
 .hero-carousel::before{
     content: "";
@@ -180,6 +186,12 @@
     100% { transform: translateX(50vw); opacity: 0; } 
 }
 
+.slide-enter-from-right .carousel__art,
+.slide-enter-from-left .carousel__art,
+.slide-exit-to-left .carousel__art,
+.slide-exit-to-right .carousel__art {
+    pointer-events: none;
+}
 /* ---------- LAYOUT (Fixed) ---------- */
 .carousel__layout{
     position: relative;
@@ -537,6 +549,20 @@
     transform: translateY(-50%) scale(0.95);
 }
 
+.carousel__arrow:focus-visible,
+.carousel__dot:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.9);
+    outline-offset: 4px;
+}
+
+.carousel__arrow:focus-visible{
+    border-radius: 999px;
+}
+
+.carousel__dot:focus-visible{
+    border-radius: 999px;
+}
+
 /* Dots */
 .carousel__dots {
     position: absolute;
@@ -592,7 +618,7 @@
     background: var(--hero-dot-color, var(--color-accent));
     border-color: rgba(209, 213, 219, 0.85);
 
-    box-shadow: 0 0 12px var(--color-accent-soft);
+    box-shadow: 0 0 12px var(--hero-dot-glow, var(--color-accent-soft));
 }
 
 .carousel__dot[data-pos="2"]{
