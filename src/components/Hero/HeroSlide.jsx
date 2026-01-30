@@ -25,16 +25,16 @@ function HeroSlide({ slide, className, orbSizes, isActive }){
 
         <div className="carousel__layout">
             <aside className="carousel__info">
-            <p className="carousel__badge">{slide.badge}</p>
-            <h1 className="carousel__title">{slide.title}</h1>
+                <p className="carousel__badge">{slide.badge}</p>
+                <h1 className="carousel__title">{slide.title}</h1>
 
-            <div className="carousel__meta">
-                <span className="carousel__pieces">
-                <span className="num_pieces mono">{slide.pieces}</span> pieces
-                </span>
-                <span className="carousel__meta-dot">•</span>
-                <span className="carousel__price mono">{slide.price}</span>
-            </div>
+                <div className="carousel__meta">
+                    <span className="carousel__pieces">
+                    <span className="num_pieces mono">{slide.pieces}</span> pieces
+                    </span>
+                    <span className="carousel__meta-dot">•</span>
+                    <span className="carousel__price mono">{slide.price}</span>
+                </div>
             </aside>
 
             <div className="carousel__art">

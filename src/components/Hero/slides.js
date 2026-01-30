@@ -2,7 +2,7 @@ export const SLIDES = [
     {
         id: 0,
         theme: "winter",
-        badge: "Bundle",
+        badge: "Bundle 1",
         title: "Winter Bundle",
         pieces: 8,
         price: "$150",
@@ -46,7 +46,7 @@ export const SLIDES = [
     {
         id: 1,
         theme: "summer",
-        badge: "Bundle2",
+        badge: "Bundle 2",
         title: "Summer Bundle",
         pieces: 9,
         price: "$150",
