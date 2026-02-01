@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { clamp } from "../../utils/clamp";
+import { clamp } from "../../../utils/clamp";
 
 export default function useResponsiveOrbs({
     min = 3,

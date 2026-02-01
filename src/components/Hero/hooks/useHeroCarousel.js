@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { clamp } from "../../utils/clamp";
+import { clamp } from "../../../utils/clamp";
 
 /**
  * useHeroCarousel
@@ -13,6 +13,36 @@ import { clamp } from "../../utils/clamp";
  * @param {number} [opts.dotAnimMs=500]
  * @param {number} [opts.swipeThresholdPx=50]
  */
+
+function cssTimeToMs(value, fallback = 800){
+    if (!value) return fallback;
+    const v = String(value).trim();
+    if (!v) return fallback;
+
+    if (v.endsWith("ms")){
+        const n = parseFloat(v);
+        return Number.isFinite(n) ? n : fallback;
+    }
+
+    if(v.endsWith("s")){
+        const n = parseFloat(v);
+        return Number.isFinite(n) ? n * 1000 : fallback;
+    }
+
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+function readHeroSlideTransitionMs(fallback = 800){
+    if (typeof window === "undefined") return fallback;
+
+    const root = document.querySelector(".hero-carousel");
+    if (!root) return fallback;
+
+    const raw = getComputedStyle(root).getPropertyValue("--slide-transition-ms");
+    return cssTimeToMs(raw, fallback);
+}
+
 export default function useHeroCarousel({
     slidesLength,
     slides= [],
@@ -60,6 +90,46 @@ export default function useHeroCarousel({
         ];
     });
 
+    useEffect(() => {
+        // Only rebuild dots when slide count mode changes (e.g., async load 0 -> N, or N -> 1)
+        if (!hasManySlides) {
+            clearTimeout(dotTimerRef.current);
+            setDots([{ id: 1, pos: 1, slideIndex: 0 }]);
+            return;
+        }
+
+        // If current becomes invalid due to slide count change, clamp it (no animation)
+        const clamped = clamp(slideState.current, 0, slidesLength - 1);
+        if (clamped !== slideState.current) {
+            clearTimeout(dotTimerRef.current);
+            setSlideState((s) => ({ ...s, current: clamped, prev: null }));
+        }
+
+        const w = buildWindow(clamped);
+
+        // Important: keep existing dot positions so animation still works.
+        // Only ensure we have the correct slideIndex mapping for current window.
+        setDots((ds) => {
+            if (ds.length === 3) {
+            return ds.map((d) =>
+                d.pos === 0
+                ? { ...d, slideIndex: w.prev }
+                : d.pos === 1
+                ? { ...d, slideIndex: w.center }
+                : { ...d, slideIndex: w.next }
+            );
+            }
+
+            // If we were in single-dot mode before (async load), initialize 3 dots once.
+            return [
+            { id: 0, pos: 0, slideIndex: w.prev },
+            { id: 1, pos: 1, slideIndex: w.center },
+            { id: 2, pos: 2, slideIndex: w.next },
+            ];
+        });
+    }, [hasManySlides, slidesLength, buildWindow]); // ✅ NO slideState.current here
+
+
     const animateDots = useCallback((direction, newCenter) => {
         if (!hasManySlides) return;
 
@@ -89,7 +159,11 @@ export default function useHeroCarousel({
         return () => clearTimeout(dotTimerRef.current);
     }, []);
 
-    const TRANSITION_MS = 800;
+    const transitionMsRef = useRef(800);
+
+    useEffect(() => {
+        transitionMsRef.current = readHeroSlideTransitionMs(800);
+    }, []);
 
     const changeSlide = useCallback((newIndex, direction) => {
         setSlideState((prevState) => {
@@ -101,7 +175,7 @@ export default function useHeroCarousel({
         clearTimeout(clearAnimRef.current);
         clearAnimRef.current = setTimeout(() => {
             clearAnimationState();
-        }, TRANSITION_MS);
+        }, transitionMsRef.current);
     }, [animateDots, clearAnimationState]);
 
     const nextSlide = useCallback(() => {
@@ -125,27 +199,6 @@ export default function useHeroCarousel({
         return () => clearInterval(timerRef.current);
     }, [autoplayMs, hasManySlides, isPaused, nextSlide]);
 
-    // Keyboard
-    useEffect(() => {
-        if (!hasManySlides) return;
-
-        const handleKeyDown = (e) => {
-            const tag = e.target?.tagName;
-            if(tag === "INPUT" || tag === "TEXTAREA" || e.target?.isContentEditable) return;
-
-            if (e.key === "ArrowLeft"){
-                setIsPaused(true);
-                prevSlide();
-            }
-            else if (e.key === "ArrowRight"){
-                setIsPaused(true);
-                nextSlide();
-            }
-        };
-        
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [hasManySlides, nextSlide, prevSlide]);
 
     useEffect(() => {
         return () => clearTimeout(clearAnimRef.current);

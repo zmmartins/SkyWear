@@ -4,7 +4,8 @@ export function getPrefetchUrlsForSlide(slide){
 
     for (const piece of slide.stack) {
         for (const img of piece.images || []){
-            if (img.eager) urls.push(img.src);
+            const shouldPrefetch = Boolean(img.priority ?? img.eager);
+            if (shouldPrefetch) urls.push(img.src);
         }
     }
     return Array.from(new Set(urls));
