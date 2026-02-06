@@ -7,25 +7,29 @@ import { getPrefetchUrlsForSlide, prefetchImages } from "../../utils/prefetch";
 import { getHeroSlides } from "./data/getHeroSlides";
 
 export default function Hero(){
+    // State Management
+    const [slides, setSlides] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState("");
+
+    // Responsive Orbs Calculation
     const { orbSizes } = useResponsiveOrbs({
         min: 3,
         max: 10,
         artDiameter: 360,
         step: 0.3,
     });
-
-    const [slides, setSlides] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [errorMsg, setErrorMsg] = useState("");
-
+    
+    // Carousel Logic Hook
     const carousel = useHeroCarousel({
         slidesLength : slides.length,
-        slides,
+        slides, // Passed for automatic theme extraction
         autoplayMs : 6000,
         dotAnimMs : 500,
         swipeThresholdPx : 50,
     });
 
+    // Data Fetching
     useEffect(() => {
         let alive = true;
 
@@ -35,65 +39,48 @@ export default function Hero(){
                 setErrorMsg("");
 
                 const data = await getHeroSlides();
-                if (!alive) return;
-
-                setSlides(Array.isArray(data) ? data : []);
+                if (alive) setSlides(Array.isArray(data) ? data : []);
             }
             catch(e){
-                if(!alive) return;
-                setSlides([]);
-                setErrorMsg(e instanceof Error ? e.message : "Failed to load hero slides");
+                if(alive) {
+                    console.error("Hero Load Error:", e);
+                    setErrorMsg(e instanceof Error ? e.message : "Failed to load bundles");
+                    setSlides([]);
+                }
             }
             finally{
-                if(!alive) return;
-                setLoading(false);
+                if(alive) setLoading(false);
             }
         })();
 
-        return () => {
-            alive = false;
-        };
+        return () => { alive = false; };
     }, []);
 
-    useEffect(() => {
-        if (slides.length === 0) return;
-
-        const current = carousel.slideState.current;
-        if (current >= slides.length){
-            carousel.changeSlide(0, "next");
-        }
-    }, [slides.length]);
-
+    // Smart Image Prefetching (Idle Callback)
     const prefetchedRef = useRef(new Set());
 
     useEffect(() => {
-        const n = slides.length;
-        if (n <= 1) return;
+        if (slides.length <= 1) return;
 
         const current = carousel.slideState.current;
-        if (current < 0 || current >= n) return;
-
+        const n = slides.length;
         const nextIndex = (current + 1) % n;
         const prevIndex = (current - 1 + n) % n;
 
-        const urls = Array.from(
-            new Set([
-                ...getPrefetchUrlsForSlide(slides[nextIndex]),
-                ...getPrefetchUrlsForSlide(slides[prevIndex]),
-            ])
-        );
+        // Collect unique, un-fetched URLs for adjacent slides
+        const urls = [
+            ...getPrefetchUrlsForSlide(slides[nextIndex]),
+            ...getPrefetchUrlsForSlide(slides[prevIndex]),
+        ].filter(url => url && !prefetchedRef.current.has(url));
 
         if (urls.length === 0) return;
 
-        let cancelled = false;
         let idleId = null;
         let timeoutId = null;
 
-        const run = () => {
-            if (cancelled) return;
-            prefetchImages(urls, prefetchedRef.current);
-        };
+        const run = () => prefetchImages(urls, prefetchedRef.current);
 
+        // Prefer requestIdleCallback to avoid jank during slide transitions
         if("requestIdleCallback" in window){
             idleId = window.requestIdleCallback(run, { timeout: 1200 });
         }
@@ -102,69 +89,43 @@ export default function Hero(){
         }
 
         return () => {
-            cancelled = true;
-            if (idleId !== null && "cancelIdleCallback" in window){
-                window.cancelIdleCallback(idleId);
-            }
-            if (timeoutId !== null){
-                clearTimeout(timeoutId);
-            }
+            if (idleId) window.cancelIdleCallback(idleId);
+            if (timeoutId) clearTimeout(timeoutId);
         };
     }, [carousel.slideState.current, slides]);
 
-    if(loading){
+    // --- RENDRE PHASES --- //
+
+    // Phase 1: Loading / Empty State
+    if(loading || (slides.length === 0 && !errorMsg)){
         return (
             <section
-                className="hero-carousel"
-                data-theme="winter"
-                role="region"
-                aria-roledescription="carousel"
-                aria-label="Featured bundles"
-                aria-live="off"
-            ></section>        
-        );
+                className = "hero-carousel"
+                data-theme= "winter"
+                aria-busy = "true"
+            />
+        );      
     }
 
+    // Phase 2: Error State
     if (errorMsg){
         return (
-            <section
-                className="hero-carousel"
-                data-theme="winter"
-                role="region"
-                aria-roledescription="carousel"
-                aria-label="Featured bundles"
-                aria-live="polite"
-            >
-                <div style={{ padding:"6rem 2rem", position: "relative", zIndex: 5}}>
-                    <p style={{ fontWeight: 600 }}> Could not load featured bundles.</p>
-                    <p className="text-muted" style={{ marginTop: "0.5rem" }}>
-                        {errorMsg}
-                    </p>
+            <section className="hero-carousel" data-theme="winter">
+                <div className="carousel__layout">
+                    <div className="carousel__info" style={{ position: "relative", zIndex: 10 }}>
+                        <h2 className="carousel__title" style={{ fontSize: "2rem" }}>Unavailable</h2>
+                        <p style={{ marginTop: "1rem", opacity: 0.8 }}>{errorMsg}</p>
+                    </div>
                 </div>
             </section>
         );
     }
 
-    if (slides.length === 0){
-        return (
-            <section
-                className="hero-carousel"
-                data-theme="winter"
-                role="region"
-                aria-roledescription="carousel"
-                aria-label="Featured bundles"
-                aria-live="off"
-            />
-        );
-    }
-
-    const currentIndex = carousel.slideState.current;
-    const currentTitle = slides[carousel.slideState.current]?.title ?? "Slide";
-    
-    const prevIndex = (currentIndex - 1 + slides.length) % slides.length;
-    const nextIndex = (currentIndex + 1) % slides.length;
-    const prevTitle = slides[prevIndex]?.title ?? "Previous slide";
-    const nextTitle = slides[nextIndex]?.title ?? "Next slide";
+    // Phase 3: Main Carousel Render
+    const { current } = carousel.slideState;
+    const activeSlide = slides[current];
+    const prevTitle = slides[(current - 1 + slides.length) % slides.length]?.title ?? "Previous"; 
+    const nextTitle = slides[(current + 1) % slides.length]?.title ?? "Next";
 
     return (
         <section 
@@ -172,90 +133,82 @@ export default function Hero(){
             data-theme={carousel.activeTheme}
             role="region"
             aria-roledescription="carousel"
-            aria-label="Featured bundles"
+            aria-label="Featured Clothing Bundles"
             aria-live={carousel.isPaused ? "polite" : "off"}
-            {...carousel.bind}
+            {...carousel.bind} // Hook up Swipe/Hover events
         >
             <div className="carousel">
+                {/* SLIDES TRACK */}
                 <div className="carousel__track">
                     {slides.map((slide, index) => (
                         <HeroSlide
-                            key={slide?.id ?? `${slide?.theme ?? "slide"}-${index}`}
+                            key={slide.id || index}
                             slide={slide}
                             className={carousel.getSlideClass(index)}
                             orbSizes={orbSizes}
-                            isActive={index === currentIndex}
+                            isActive={index === current}
                         />
                     ))}
                 </div>
 
-                {/* CONTROLS */}
-                <button 
-                    onClick={() => {
-                        carousel.setIsPaused(true);
-                        carousel.prevSlide();
-                    }} 
-                    className="carousel__arrow carousel__arrow--prev" 
-                    aria-label="Previous slide"
-                >
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                    >
-                        <path d="M9 5l7 7-7 7" />
-                    </svg>
+                {/* CONTROLS: ARROWS */}
+                <NavArrow
+                    direction="prev"
+                    onClick={() => { carousel.setIsPaused(true); carousel.prevSlide(); }}
+                />
+                <NavArrow
+                    direction="next"
+                    onClick={() => { carousel.setIsPaused(true); carousel.nextSlide(); }}
+                />   
 
-                </button>
-
-                <button 
-                    onClick={() => {
-                        carousel.setIsPaused(true);
-                        carousel.nextSlide();
-                    }} 
-                    className="carousel__arrow carousel__arrow--next" 
-                    aria-label="Next slide"
-                >
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                    >
-                        <path d="M9 5l7 7-7 7" />
-                    </svg>
-
-                </button>
-
+                {/* CONTROLS: DOTS */}
                 <div className="carousel__dots">
-                    {carousel.dots.map((d) => (
-                        <button
-                            key={d.id}
-                            className="carousel__dot"
-                            data-pos={d.pos}
-                            onClick={() => {
-                                carousel.setIsPaused(true);
-                                carousel.dotNav(d.pos);
-                            }}
-                            aria-label={
-                                d.pos === 1 
-                                    ? `Current slide: ${currentTitle}` 
-                                    : d.pos === 0 
-                                    ? `Previous slide: ${prevTitle}` 
-                                    : `Next slide: ${nextTitle}`
-                            }
-                            aria-current={d.pos === 1 ? "true" : undefined}
-                        />
-                    ))}
+                    {carousel.dots.map((d) => {
+                        let label = "";
+                        if (d.pos === 1) label = `Current: ${activeSlide?.title}`;
+                        else if (d.pos === 0) label = `Go to previous: ${prevTitle}`;
+                        else label = `Go to next: ${nextTitle}`;
+
+                        return (
+                            <button
+                                key={d.id}
+                                type="button"
+                                className="carousel__dot"
+                                data-pos={d.pos}
+                                onClick={() => {
+                                    carousel.setIsPaused(true);
+                                    carousel.dotNav(d.pos);
+                                }}
+                                aria-label={label}
+                                aria-current={d.pos === 1 ? "true" : undefined}
+                            />
+                        );
+                    })}
                 </div>
             </div>
         </section>
+    );
+}
+
+function NavArrow({ direction, onClick }){
+    const isNext = direction === "next";
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`carousel__arrow carousel__arrow--${direction}`}
+            aria-label={`${isNext ? "Next" : "Previous"} slide`}
+        >
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            >
+                <path d = "M9 5l7 7-7 7"/>
+            </svg>
+        </button>   
     );
 }

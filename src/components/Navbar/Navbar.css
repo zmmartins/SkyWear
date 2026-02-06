@@ -8,8 +8,13 @@
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
-  z-index: 50; /* Increased z-index to stay above Hero */
+  z-index: 50; 
   box-shadow: 0 4px 22px rgba(0, 0, 0, 0.22);
+  
+  /* NEW: Dynamic Color Transition */
+  /* Defaults to global white text if variable isn't set */
+  color: var(--navbar-text-color, var(--color-text)); 
+  transition: color 0.1s linear; /* Smooths out any small calculation jitters */
 }
 
 .navbar__logo {
@@ -21,6 +26,14 @@
 .navbar__actions {
   display: flex;
   gap: 0.75rem;
+}
+
+/* NEW: Update Ghost Button to respect the dynamic color */
+.btn--ghost {
+  /* Use the same variable for text */
+  color: var(--navbar-text-color, var(--color-text)); 
+  /* Use the same variable for border (or currentColor) */
+  border-color: var(--navbar-text-color, var(--color-border));
 }
 
 @media (max-width: 768px) {
