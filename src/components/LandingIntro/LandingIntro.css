@@ -1,0 +1,156 @@
+/* ==========================================================================
+   LANDING INTRO SECTION
+   ========================================================================== */
+
+.landing-intro {
+    position: relative;
+    width: 100%;
+    
+    /* Viewport Fixes */
+    height: 100vh; 
+    height: 100dvh; 
+
+    /* Layout: Pull up behind the sticky Navbar */
+    margin-top: calc(-1 * var(--navbar-height));
+    padding: 0; 
+    
+    background-color: #ffffff;
+    color: #000000;
+    
+    overflow: hidden; 
+    z-index: 10;
+}
+
+/* --- THE ACCENT CIRCLE --- */
+.landing-intro__accent-circle {
+    position: absolute;
+    top: calc(50% + calc(var(--navbar-height) / 2));
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80vmin; 
+    height: 80vmin;
+    background-color: var(--color-accent); 
+    border-radius: 50%;
+    z-index: 1; /* Below the stencil */
+    pointer-events: none;
+}
+
+/* --- LAYER 1: The Infinite Dot Pattern --- */
+.landing-intro__dots-layer {
+    position: absolute;
+    z-index: 2;
+    
+    /* Area: From Navbar to Bottom */
+    top: var(--navbar-height);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    
+    /* THE DOTS: High Density Radial Gradient */
+    /* 1px dot radius, 3px spacing grid */
+    background-image: radial-gradient(var(--color-accent) 2px, transparent 2px);
+    background-size: 7px 7px; 
+
+    pointer-events: none;
+}
+
+.landing-intro__dots-layer--white {
+    /* Ensure this layer sits exactly on top of the orange one */
+    background-image: radial-gradient(#ffffff 2px, transparent 2px);
+    z-index: 3; 
+    
+    /* 1. Use 'closest-side' so 100% = the edge of the mask-size box */
+    /* 2. Use 'black 99%' to create a solid circle that fills the whole box */
+    mask-image: radial-gradient(closest-side, black 99%, transparent 100%);
+    
+    /* 3. Match the size exactly to your Accent Circle (80vmin) */
+    mask-size: 80vmin 80vmin; 
+    
+    mask-repeat: no-repeat;
+    mask-position: center;
+    
+    /* Webkit prefixes for Chrome/Safari support */
+    -webkit-mask-image: radial-gradient(closest-side, black 99%, transparent 100%);
+    -webkit-mask-size: 80vmin 80vmin;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+/* --- LAYER 2: The SVG Stencil (White Overlay) --- */
+.landing-intro__stencil {
+    position: absolute;
+    z-index: 4; 
+    
+    top: var(--navbar-height);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    
+    width: 100%;
+    height: 100%;
+    
+    pointer-events: none;
+}
+
+/* Internal SVG Font Styling */
+.landing-intro__stencil text {
+    font-family: var(--font-sans); 
+    text-transform: uppercase;
+    
+    /* NEW: Negative spacing causes letters to touch/overlap */
+    letter-spacing: -0.05em; 
+}
+
+/* --- LAYER 3: The Foreground Content --- */
+.landing-intro__content {
+    position: relative;
+    z-index: 10; 
+    width: 100%;
+    height: 100%;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+    padding: calc(var(--navbar-height) + 2rem) 2rem 2rem 2rem;
+}
+
+/* Typography */
+.landing-intro__line {
+    font-family: var(--font-sans);
+    font-weight: 800; 
+    font-size: clamp(3rem, 9vw, 9rem); 
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    
+    opacity: 0;
+    animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.landing-intro__line--top {
+    text-align: left;
+    max-width: 12ch;
+    animation-delay: 0.1s;
+}
+
+.landing-intro__line--bottom {
+    text-align: right;
+    align-self: flex-end;
+    max-width: 14ch;
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .landing-intro__content {
+        padding-top: calc(var(--navbar-height) + 3rem);
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        padding-bottom: 2rem;
+    }
+}

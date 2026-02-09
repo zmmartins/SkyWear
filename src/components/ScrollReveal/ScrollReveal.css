@@ -1,10 +1,23 @@
-/* =========================================
-   CONTAINER & LAYOUT
-   ========================================= */
+/* ==========================================================================
+   SCROLL REVEAL COMPONENT
+   --------------------------------------------------------------------------
+   A sticky scroll container that creates a "portal" effect.
+   As the user scrolls, glass orbs expand to reveal the next section.
+
+   Layer Map (Z-Index):
+   1 : Background (The Hero Carousel passed as children)
+   2 : Glass Orbs (The expanding liquid effect)
+   3 : Foreground (The new content being revealed)
+   ========================================================================== */
+
+/* 1. CONTAINER & LAYOUT
+   -------------------------------------------------------------------------- */
 .scroll-reveal {
+    /* Defines the scroll distance required to complete the animation */
     height: 220vh; 
     position: relative;
     z-index: 1;
+    /* Pull content up to overlap/hide the navbar gap if necessary */
     margin-top: calc(-1 * var(--navbar-height));
 }
 
@@ -15,22 +28,26 @@
     height: 100vh;
     height: 100dvh; /* Mobile browser support */
     overflow: hidden;
+    
+    /* PERFORMANCE: Force GPU promotion to prevent background repaints */
+    transform: translate3d(0, 0, 0);
 }
 
+/* 2. LAYERS
+   -------------------------------------------------------------------------- */
 .scroll-reveal__layer {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    /* No will-change here to prevent stacking context isolation issues */
 }
-
-/* --- Layer Z-Index Stacking --- */
 
 /* Layer 1: The Background (Hero) */
 .scroll-reveal__layer--back { 
     z-index: 1; 
 }
+
+/* Fix for Hero getting pushed down inside this container */
 .scroll-reveal__layer--back .hero-carousel {
     margin-top: 0 !important;
 }
@@ -41,78 +58,84 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    pointer-events: none;
-    /* IMPORTANT: No transform or will-change here allows visibility through to the back */
+    
+    /* Allow clicks to pass through the glass to the hero (when glass is small) */
+    pointer-events: none; 
 }
 
 /* Layer 3: The Foreground (White Content) */
 .scroll-reveal__layer--front {
     z-index: 3;
-    background-color: white;
-    will-change: clip-path;
+    background-color: white; /* The "End State" background color */
+    
+    /* Performance hint for the circular reveal clip-path */
+    will-change: clip-path; 
 }
 
-/* =========================================
-   GLASS ORBS
-   ========================================= */
+/* 3. GLASS ORBS (VISUALS)
+   -------------------------------------------------------------------------- */
 .glass-orb {
     position: absolute;
-    width: 150vmax;
+    width: 150vmax; /* Ensures orb covers corners on any screen ratio */
     aspect-ratio: 1/1;
     border-radius: 50%;
     
-    /* Hardware Acceleration Hints */
+    /* Performance: Isolate geometry to prevent layout thrashing */
     backface-visibility: hidden;
+    transform: translateZ(0); 
     will-change: transform; 
 }
 
-/* === VARIANT 1: WEAK ORB === */
+/* Variant 1: Weak Orb (The subtle outer ring) */
 .glass-orb--weak {
     z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.25);
     
-    background: 
-        radial-gradient(ellipse 50% 40% at 30% 30%, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 60%),
-        radial-gradient(ellipse 50% 40% at 70% 70%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 60%),
-        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
-    
+    /* Glass Effect */
     backdrop-filter: saturate(135%) blur(6px) contrast(102%);
+    -webkit-backdrop-filter: saturate(135%) blur(6px) contrast(102%);
     
     box-shadow: 
         inset 10px 10px 20px rgba(255, 255, 255, 0.15), 
         inset -10px -10px 20px rgba(0, 0, 0, 0.10);
-    
-    border: 1px solid rgba(255, 255, 255, 0.25);
+
+    /* Complex Gradient - Formatted for readability */
+    background: 
+        radial-gradient(ellipse 50% 40% at 30% 30%, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 60%),
+        radial-gradient(ellipse 50% 40% at 70% 70%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 60%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
 }
 
-/* === VARIANT 2: STRONG ORB === */
+/* Variant 2: Strong Orb (The distinct inner ring) */
 .glass-orb--strong {
     z-index: 2;
+    border: 1px solid rgba(255, 255, 255, 0.4);
     
-    background: 
-        radial-gradient(ellipse 50% 40% at 30% 30%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 60%),
-        radial-gradient(ellipse 50% 40% at 70% 70%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 60%),
-        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
-
+    /* Glass Effect (Stronger) */
     backdrop-filter: saturate(160%) blur(8px) contrast(105%);
-    
+    -webkit-backdrop-filter: saturate(160%) blur(8px) contrast(105%);
+
     box-shadow: 
         inset 10px 10px 20px rgba(255, 255, 255, 0.25), 
         inset -10px -10px 20px rgba(0, 0, 0, 0.15),
         0 0 15px rgba(255, 255, 255, 0.1);
-    
-    border: 1px solid rgba(255, 255, 255, 0.4);
+
+    background: 
+        radial-gradient(ellipse 50% 40% at 30% 30%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 60%),
+        radial-gradient(ellipse 50% 40% at 70% 70%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 60%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
 }
 
-/* =========================================
-   SNAP POINTS
-   ========================================= */
+/* 4. UTILITIES (SNAP POINTS)
+   -------------------------------------------------------------------------- */
 .scroll-reveal__snap-point {
     position: absolute;
     width: 100%;
     height: 1px;
     scroll-snap-align: start;
     pointer-events: none;
+    visibility: hidden; /* Keeps snap behavior but removes from visual flow */
 }
 
 .scroll-reveal__snap-point--start { top: 0; }
-.scroll-reveal__snap-point--end { top: 120vh; }
+.scroll-reveal__snap-point--end { top: 100%; }

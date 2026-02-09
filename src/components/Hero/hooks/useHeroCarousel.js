@@ -2,241 +2,211 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clamp } from "../../../utils/clamp";
 
 /**
- * useHeroCarousel
- * 
- * Encapsula o comportamento do carrossel: estado dos slides, dots, autoplay, keyboard, swipe, pausa/resumo.
- * 
- * @param {object} opts
- * @param {number} opts.slidesLength - Number of slides.
- * @param {Array<{ theme?: string }>} [opts.slides] - Optional slide metadata for activeTheme.
- * @param {number} [opts.autoplayMs=6000]
- * @param {number} [opts.dotAnimMs=500]
- * @param {number} [opts.swipeThresholdPx=50]
+ * HOOK: useHeroCarousel
+ * ------------------------------------------------------------------
+ * Manages the state machine for the Hero Carousel.
+ * Handles: Sliding logic, Dot "rotation" logic, Autoplay, and Swipe.
+ * * @param {Object} config
+ * @param {number} config.slidesLength - Total count of slides
+ * @param {Array} config.slides - The slide data (needed for theme extraction)
+ * @param {number} config.autoplayMs - Delay between auto-slides (default: 6000)
+ * @param {number} config.swipeThreshold - Pixels required to trigger swipe (default: 50)
  */
-
-function cssTimeToMs(value, fallback = 800){
-    if (!value) return fallback;
-    const v = String(value).trim();
-    if (!v) return fallback;
-
-    if (v.endsWith("ms")){
-        const n = parseFloat(v);
-        return Number.isFinite(n) ? n : fallback;
-    }
-
-    if(v.endsWith("s")){
-        const n = parseFloat(v);
-        return Number.isFinite(n) ? n * 1000 : fallback;
-    }
-
-    const n = parseFloat(v);
-    return Number.isFinite(n) ? n : fallback;
-}
-
-function readHeroSlideTransitionMs(fallback = 800){
-    if (typeof window === "undefined") return fallback;
-
-    const root = document.querySelector(".hero-carousel");
-    if (!root) return fallback;
-
-    const raw = getComputedStyle(root).getPropertyValue("--slide-transition-ms");
-    return cssTimeToMs(raw, fallback);
-}
-
 export default function useHeroCarousel({
-    slidesLength,
-    slides= [],
+    slidesLength = 0,
+    slides = [],
     autoplayMs = 6000,
-    dotAnimMs = 500,
-    swipeThresholdPx = 50,
+    swipeThreshold = 50,
 }) {
+    // -- Configuration Constants --
+    const TRANSITION_MS = 800; // Must match CSS --slide-transition-ms
+    const DOT_ANIM_MS = 500;   // Time for dot to shift position
+    
+    // -- Refs for Logic (Non-rendering state) --
+    const timerRef = useRef(null);         // Autoplay timer
+    const transitionTimer = useRef(null);  // CSS Cleanup timer
+    const dotTimer = useRef(null);         // Dot animation timer
+    const touchStartX = useRef(0);         // Swipe tracking
+    const isAnimating = useRef(false);     // Prevents spam-clicking
 
-    const SWIPE_THRESHOLD = clamp(swipeThresholdPx, 20, 200);
+    const hasManySlides = slidesLength > 1;
 
-    const clearAnimRef = useRef(null);
-
-    const clearAnimationState = useCallback(() => {
-        setSlideState((s) => (s.prev === null ? s : { ...s, prev: null }));
-    }, []);
-
+    // -- State: Slide Position --
+    // We store 'prev' to allow the CSS to animate the exiting slide
     const [slideState, setSlideState] = useState({
         current: 0,
         prev: null,
-        direction: "next",
+        direction: "next", // 'next' | 'prev'
     });
 
     const [isPaused, setIsPaused] = useState(false);
 
-    const timerRef= useRef(null);
-    const dotTimerRef= useRef(null);
-    const touchStartX = useRef(0);
+    // -- State: Dots (The Rolling Window) --
+    // We initialize this lazily to avoid recalculating on every render
+    const [dots, setDots] = useState([]);
 
-    const hasManySlides = slidesLength > 1;
-    
-    const buildWindow = useCallback((center) => {
-            if (slidesLength <= 1) return { prev: 0, center: 0, next: 0 };
-            const prev = (center - 1 + slidesLength) % slidesLength;
-            const next= (center + 1) % slidesLength;
-            return { prev, center, next };
+    useEffect(() => {
+        if (hasManySlides){
+            setDots([
+                { id: 0, pos: 0, slideIndex: slidesLength - 1 },
+                { id: 1, pos: 1, slideIndex: 0 },
+                { id: 2, pos: 2, slideIndex: 1 },
+            ]);
+        }
+        else{
+            setDots([]);
+        }
+    }, [slidesLength, hasManySlides]);
+
+    // ------------------------------------------------------------------
+    // 1. HELPER: Calculate Slide Indices (Circular)
+    // ------------------------------------------------------------------
+    const getIndices = useCallback((centerIndex) => {
+        const prev = (centerIndex - 1 + slidesLength) % slidesLength;
+        const next = (centerIndex + 1) % slidesLength;
+        return { prev, center: centerIndex, next };
     }, [slidesLength]);
-    
-    const [dots, setDots] = useState(() => {
-        if (!hasManySlides) return [{ id: 1, pos: 1, slideIndex: 0 }];
-        const w = buildWindow(0);
-        return [
-            { id: 0, pos: 0, slideIndex: w.prev },
-            { id:1, pos: 1, slideIndex: w.center },
-            { id: 2, pos: 2, slideIndex: w.next },
-        ];
-    });
 
-    useEffect(() => {
-        // Only rebuild dots when slide count mode changes (e.g., async load 0 -> N, or N -> 1)
-        if (!hasManySlides) {
-            clearTimeout(dotTimerRef.current);
-            setDots([{ id: 1, pos: 1, slideIndex: 0 }]);
-            return;
-        }
+    // ------------------------------------------------------------------
+    // 2. CORE: Change Slide Logic
+    // ------------------------------------------------------------------
+    const goToSlide = useCallback((newIndex, direction) => {
+        if (newIndex === slideState.current) return;
+        
+        // A. Update Main Slide State
+        setSlideState((prev) => ({
+            current: newIndex,
+            prev: prev.current,
+            direction,
+        }));
 
-        // If current becomes invalid due to slide count change, clamp it (no animation)
-        const clamped = clamp(slideState.current, 0, slidesLength - 1);
-        if (clamped !== slideState.current) {
-            clearTimeout(dotTimerRef.current);
-            setSlideState((s) => ({ ...s, current: clamped, prev: null }));
-        }
+        // B. Lock Animation (prevent spam)
+        isAnimating.current = true;
+        clearTimeout(transitionTimer.current);
+        transitionTimer.current = setTimeout(() => {
+            setSlideState((s) => ({ ...s, prev: null })); // Cleanup 'exiting' class
+            isAnimating.current = false;
+        }, TRANSITION_MS);
 
-        const w = buildWindow(clamped);
-
-        // Important: keep existing dot positions so animation still works.
-        // Only ensure we have the correct slideIndex mapping for current window.
-        setDots((ds) => {
-            if (ds.length === 3) {
-            return ds.map((d) =>
-                d.pos === 0
-                ? { ...d, slideIndex: w.prev }
-                : d.pos === 1
-                ? { ...d, slideIndex: w.center }
-                : { ...d, slideIndex: w.next }
+        // C. Update Dots (The "Rolling" Animation)
+        if (hasManySlides) {
+            // 1. Shift dots visually first (rotate positions)
+            setDots((currentDots) => 
+                currentDots.map((d) => ({
+                    ...d,
+                    pos: direction === "next" 
+                        ? (d.pos + 2) % 3  // Shift Left logic
+                        : (d.pos + 1) % 3  // Shift Right logic
+                }))
             );
-            }
 
-            // If we were in single-dot mode before (async load), initialize 3 dots once.
-            return [
-            { id: 0, pos: 0, slideIndex: w.prev },
-            { id: 1, pos: 1, slideIndex: w.center },
-            { id: 2, pos: 2, slideIndex: w.next },
-            ];
-        });
-    }, [hasManySlides, slidesLength, buildWindow]); // ✅ NO slideState.current here
+            // 2. After animation, snap valid indices into place
+            clearTimeout(dotTimer.current);
+            dotTimer.current = setTimeout(() => {
+                const w = getIndices(newIndex);
+                setDots((currentDots) =>
+                    currentDots.map((d) => {
+                        if (d.pos === 0) return { ...d, slideIndex: w.prev };
+                        if (d.pos === 1) return { ...d, slideIndex: w.center };
+                        return { ...d, slideIndex: w.next };
+                    })
+                );
+            }, DOT_ANIM_MS);
+        }
+    }, [slideState.current, hasManySlides, getIndices]);
 
-
-    const animateDots = useCallback((direction, newCenter) => {
-        if (!hasManySlides) return;
-
-        setDots((ds) => 
-            ds.map((d) => ({
-                ...d,
-                pos: direction === "next" ? (d.pos + 2) % 3 : (d.pos + 1) % 3,
-            }))
-        );
-
-        clearTimeout(dotTimerRef.current);
-        dotTimerRef.current = setTimeout(() => {
-            const w = buildWindow(newCenter);
-            setDots((ds) =>
-                ds.map((d) => 
-                    d.pos === 0 
-                    ? {...d, slideIndex: w.prev}
-                    : d.pos === 1
-                        ? {...d, slideIndex: w.center}
-                        : {...d, slideIndex: w.next}
-                )
-            );
-        }, dotAnimMs);
-    }, [buildWindow, dotAnimMs, hasManySlides]);
-
-    useEffect(() => {
-        return () => clearTimeout(dotTimerRef.current);
-    }, []);
-
-    const transitionMsRef = useRef(800);
-
-    useEffect(() => {
-        transitionMsRef.current = readHeroSlideTransitionMs(800);
-    }, []);
-
-    const changeSlide = useCallback((newIndex, direction) => {
-        setSlideState((prevState) => {
-            if (prevState.current === newIndex) return prevState;
-            return { current: newIndex, prev: prevState.current, direction};
-        });
-        animateDots(direction, newIndex);
-
-        clearTimeout(clearAnimRef.current);
-        clearAnimRef.current = setTimeout(() => {
-            clearAnimationState();
-        }, transitionMsRef.current);
-    }, [animateDots, clearAnimationState]);
-
+    // ------------------------------------------------------------------
+    // 3. DIRECTIONAL CONTROLS
+    // ------------------------------------------------------------------
     const nextSlide = useCallback(() => {
-        if (slidesLength <= 1) return;
-        const nextIndex = (slideState.current + 1) % slidesLength;
-        changeSlide(nextIndex, "next");
-    }, [slidesLength, slideState.current, changeSlide]);
-
-    const prevSlide = useCallback(()=> {
-        if(slidesLength <= 1) return;
-        const prevIndex = slideState.current === 0 ? slidesLength - 1 : slideState.current - 1;
-        changeSlide(prevIndex, "prev");
-    }, [slidesLength, slideState.current, changeSlide]);
-
-    // Autoplay
-    useEffect(() => {
         if (!hasManySlides) return;
-        if (isPaused) return;
+        const next = (slideState.current + 1) % slidesLength;
+        goToSlide(next, "next");
+    }, [slideState.current, slidesLength, hasManySlides, goToSlide]);
 
-        timerRef.current = setInterval(nextSlide, autoplayMs);
-        return () => clearInterval(timerRef.current);
-    }, [autoplayMs, hasManySlides, isPaused, nextSlide]);
+    const prevSlide = useCallback(() => {
+        if (!hasManySlides) return;
+        const prev = slideState.current === 0 ? slidesLength - 1 : slideState.current - 1;
+        goToSlide(prev, "prev");
+    }, [slideState.current, slidesLength, hasManySlides, goToSlide]);
 
+    // Exposed helper for the Dot onClick events
+    const handleDotClick = useCallback((pos) => {
+        if (!hasManySlides || isAnimating.current) return;
+        if (pos === 0) prevSlide();
+        if (pos === 2) nextSlide();
+    }, [hasManySlides, prevSlide, nextSlide]);
+
+    // ------------------------------------------------------------------
+    // 4. AUTOPLAY ENGINE
+    // ------------------------------------------------------------------
+    // Use a Ref to store the latest 'nextSlide' so setInterval doesn't need to reset
+    const savedNextSlide = useRef(nextSlide);
+    useEffect(() => { savedNextSlide.current = nextSlide; }, [nextSlide]);
 
     useEffect(() => {
-        return () => clearTimeout(clearAnimRef.current);
-    }, []);
+        if (!hasManySlides || isPaused) return;
+        
+        const tick = () => savedNextSlide.current();
+        timerRef.current = setInterval(tick, autoplayMs);
+        
+        return () => clearInterval(timerRef.current);
+    }, [hasManySlides, isPaused, autoplayMs]);
 
-    // Touch / Swipe
-    const onTouchStart = useCallback((e) => {
-        touchStartX.current = e.changedTouches[0].screenX;
-    }, []);
-
-    const onTouchEnd = useCallback((e) => {
-        if(!hasManySlides) return;
-        const endX = e.changedTouches[0].screenX;
-        const diff = touchStartX.current - endX;
-
-        if (Math.abs(diff) > SWIPE_THRESHOLD){
+    // ------------------------------------------------------------------
+    // 5. EVENT HANDLERS (Swipe & Mouse)
+    // ------------------------------------------------------------------
+    const handlers = useMemo(() => ({
+        onMouseEnter: () => setIsPaused(true),
+        onMouseLeave: () => setIsPaused(false),
+        
+        onTouchStart: (e) => {
+            touchStartX.current = e.changedTouches[0].screenX;
             setIsPaused(true);
-            diff > 0 ? nextSlide() : prevSlide();
+        },
+        
+        onTouchEnd: (e) => {
+            if (!hasManySlides) return;
+            const endX = e.changedTouches[0].screenX;
+            const diff = touchStartX.current - endX;
+
+            // diff > 0 means finger moved Left (Next Slide)
+            // diff < 0 means finger moved Right (Prev Slide)
+            if (Math.abs(diff) > clamp(swipeThreshold, 20, 200)) {
+                diff > 0 ? nextSlide() : prevSlide();
+            }
+            
+            // Optional: Resume autoplay after a delay, or keep paused until interaction ends
+            // Currently logic keeps it paused until mouse leave or next interaction
         }
-    }, [hasManySlides, nextSlide, prevSlide, SWIPE_THRESHOLD]);
+    }), [hasManySlides, nextSlide, prevSlide, swipeThreshold]);
 
-    const onMouseEnter = useCallback(() => setIsPaused(true), []);
-    const onMouseLeave = useCallback(() => setIsPaused(false), []);
-
+    // ------------------------------------------------------------------
+    // 6. RENDER HELPERS
+    // ------------------------------------------------------------------
+    
+    /**
+     * Generates the CSS classes for animations based on current state.
+     * Prevents logic clutter in the JSX.
+     */
     const getSlideClass = useCallback((index) => {
+        const { current, prev, direction } = slideState;
         let className = "carousel__slide";
 
-        if(index === slideState.current){
+        if (index === current) {
             className += " is-active";
-            if (slideState.prev != null){
-                className += slideState.direction === "next" ? " slide-enter-from-right" : " slide-enter-from-left";
+            // Only add entrance animation if we have a previous slide (not on first load)
+            if (prev !== null) {
+                className += direction === "next" 
+                    ? " slide-enter-from-right" 
+                    : " slide-enter-from-left";
             }
-        }
-        else if (index === slideState.prev){
+        } else if (index === prev) {
             className += " is-exiting";
-            className += slideState.direction === "next" ? " slide-exit-to-left" : " slide-exit-to-right";
-        }
-        else {
+            className += direction === "next" 
+                ? " slide-exit-to-left" 
+                : " slide-exit-to-right";
+        } else {
             className += " is-hidden";
         }
 
@@ -247,33 +217,34 @@ export default function useHeroCarousel({
         return slides?.[slideState.current]?.theme ?? "winter";
     }, [slides, slideState.current]);
 
-    const dotNav = useCallback((pos) => {
-        if(!hasManySlides) return;
-        if(pos === 0) prevSlide();
-        if(pos === 2) nextSlide();
-    }, [hasManySlides, nextSlide, prevSlide]);
+    // ------------------------------------------------------------------
+    // 7. CLEANUP
+    // ------------------------------------------------------------------
+    useEffect(() => {
+        return () => {
+            clearTimeout(transitionTimer.current);
+            clearTimeout(dotTimer.current);
+            clearInterval(timerRef.current);
+        };
+    }, []);
 
     return {
-        slideState, 
+        // State
+        slideState,
         activeTheme,
-        
+        dots,
         isPaused,
-        setIsPaused,
-
-        dots: hasManySlides ? dots : [{ id: 1, pos: 1, slideIndex: 0 }],
-
+        
+        // Actions
         nextSlide,
         prevSlide,
-        changeSlide,
-
+        goToSlide,
+        handleDotClick,
+        
+        // Helpers
         getSlideClass,
-        dotNav,
-
-        bind: {
-            onMouseEnter,
-            onMouseLeave,
-            onTouchStart,
-            onTouchEnd,
-        },
+        
+        // Event Bindings (Spread these onto the container)
+        bind: handlers
     };
 }

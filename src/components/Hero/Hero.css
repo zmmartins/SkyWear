@@ -1,13 +1,36 @@
 /* ==========================================================================
-   1. VARIABLES & THEME CONFIGURATION
+   HERO COMPONENT STYLES
+   Structure:
+   1. Config & Layers
+   2. Main Layout (Container, Track)
+   3. Slides & Backgrounds
+   4. Content (Typography, Info Panel)
+   5. The Orb (Liquid Glass Art)
+   6. Clothing Stack (Explosion Animation)
+   7. Controls (Arrows, Dots)
+   8. Animation Keyframes
    ========================================================================== */
-.hero-carousel {
-    /* Layout Variables */
-    --slide-transition-ms: 800ms;
 
-    /* Theme Colors (Defaults) */
+/* 1. CONFIGURATION & LAYERS
+   -------------------------------------------------------------------------- */
+.hero-carousel {
+    /* Animation Timing */
+    --slide-transition-ms: 800ms;
+    --orb-hover-ease: cubic-bezier(0.25, 0.8, 0.4, 1);
+    
+    /* Theme Colors (Default: Winter) */
     --hero-dot-color: #6a94d4;
     --hero-dot-glow: rgba(106, 148, 212, 0.35);
+
+    /* Layer Map (Z-Index Reference)
+       0  : Base Context
+       1  : Track / Stack Items
+       5  : Exiting Slide
+       9  : Active Slide
+       10 : Orb Art
+       11 : Info Panel
+       20 : Controls (Arrows/Dots)
+    */
 }
 
 /* Theme Overrides */
@@ -15,21 +38,20 @@
     --hero-dot-color: #6a94d4;
     --hero-dot-glow: rgba(106, 148, 212, 0.35);
 }
+
 .hero-carousel[data-theme="summer"] {
     --hero-dot-color: #ff8e4f;
     --hero-dot-glow: rgba(255, 142, 79, 0.35);
 }
 
-/* ==========================================================================
-   2. MAIN CONTAINER & LAYOUT
-   ========================================================================== */
+/* 2. MAIN LAYOUT
+   -------------------------------------------------------------------------- */
 .hero-carousel {
     position: relative;
     width: 100%;
     height: 100vh;
-    margin-top: calc(-1 * var(--navbar-height));
-
-    /* Stacking Context: Base level */
+    /* Pull up behind navbar */
+    margin-top: calc(-1 * var(--navbar-height)); 
     z-index: 0;
     background: transparent;
 }
@@ -37,59 +59,73 @@
 .hero-carousel:focus { outline: none; }
 .hero-carousel:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.35); }
 
-/* ==========================================================================
-   3. CAROUSEL CORE (Track & Slide Logic)
-   ========================================================================== */
 .carousel {
-    position: realaive;
+    position: relative;
     width: 100%;
     height: 100%;
     z-index: 1;
     overflow: hidden;
-    contain: layout paint;
+    /* Performance: isolate layout calculations */
+    contain: layout paint; 
 }
 
-.carousel__track{
+.carousel__track {
     position: relative;
     height: 100%;
+    width: 100%;
 }
 
-.carousel__slide{
+.carousel__layout {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: var(--navbar-height) 2rem 0;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    
+    z-index: 5;
+    transition: padding 0.3s ease, gap 0.3s ease;
+}
+
+/* 3. SLIDES & BACKGROUNDS
+   -------------------------------------------------------------------------- */
+.carousel__slide {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-
+    
     opacity: 0;
     z-index: 0;
     pointer-events: none;
     contain: layout paint;
 }
 
-/* Active State: Top of stack, interactive */
-.carousel__slide.is-active{
+/* State: Active (Visible & Interactive) */
+.carousel__slide.is-active {
     opacity: 1;
     z-index: 9;
     pointer-events: auto;
 }
 
-/* Exiting State: Visible but non-interactive, below active */
+/* State: Exiting (Visible but waiting to fade) */
 .carousel__slide.is-exiting {
     opacity: 1;
     z-index: 5;
     pointer-events: none;
 }
 
-.carousel__slide.is-hidden{ display: none; }
+.carousel__slide.is-hidden { display: none; }
 
-/* ==========================================================================
-   4. SLIDE BACKGROUNDS
-   ========================================================================== */
+/* Slide Backgrounds */
 .slide-bg {
     position: absolute;
     inset: 0;
-    z-index:0;
+    z-index: 0;
     background-size: cover;
     background-position: center;
 }
@@ -114,129 +150,111 @@
     );
 }
 
-/* ==========================================================================
-   5. INTERNAL LAYOUT (Grid & Positioning)
-   ========================================================================== */
-.carousel__layout{
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: var(--navbar-height) 2rem 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2.5rem;
-
-    z-index: 5;
-    transition: padding 0.3s ease, gap 0.3s ease;
-}
-
-/* ==========================================================================
-   6. TYPOGRAPHY & INFO PANEL
-   ========================================================================== */
-.carousel__info{
+/* 4. CONTENT (INFO PANEL)
+   -------------------------------------------------------------------------- */
+.carousel__info {
     position: absolute;
     z-index: 11;
     pointer-events: auto;
-
-    /* Responsive positioning anchors */
+    
     top: calc(6rem + var(--navbar-height));
     left: 4rem;
     max-width: 450px;
-
+    
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     text-align: left;
     color: white;
-
-    transition: left 0.35s ease, top 0.35s ease;
+    
+    /* Responsive movement */
+    transition: left 0.35s ease, top 0.35s ease; 
 }
 
-@media (min-width: 1024px) and (max-width: 1199px){
-    .carousel__info{
+/* Laptop Adjustment */
+@media (min-width: 1024px) and (max-width: 1199px) {
+    .carousel__info {
         left: 2rem;
         top: calc(4rem + var(--navbar-height));
     }
 }
 
-.carousel__badge{
+.carousel__badge {
     font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-.carousel__title{
+.carousel__title {
     font-size: clamp(2.5rem, 2rem + 2vw, 4rem);
     line-height: 1.1;
     text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    margin: 0.25rem 0;
 }
 
-.carousel__meta{
+.carousel__meta {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin: 0.25rem 0 0.5rem;
+    margin: 0.25rem 0 1rem;
     font-size: 1rem;
 }
 
-.carousel__pieces{
+.carousel__pieces {
     color: var(--color-accent);
     background-color: white;
     padding: 0.35rem 0.85rem;
     border-radius: var(--radius-pill);
+    font-weight: 600;
 }
 
-.carousel__meta-dot{ opacity: 0.6; }
+.carousel__meta-dot { opacity: 0.6; }
 .carousel__price { font-weight: 600; }
 
-/* ==========================================================================
-   7. ART VISUALS (The Orb & Glass Effect)
-   ========================================================================== */
-.carousel__art{
+/* 5. THE ORB (ART & GLASS EFFECT)
+   -------------------------------------------------------------------------- */
+.carousel__art {
     position: relative;
     z-index: 10;
     pointer-events: auto;
     width: min(360px, 70vw);
     aspect-ratio: 3/5;
-    isolation: isolate;
+    isolation: isolate; /* Create new stacking context for glass */
 
     --glass-strength: 0;
     transition: --glass-strength 0.35s ease;
 }
 
-/* Hover State: Activates glass/floating effects */
-.carousel__art:hover{
+.carousel__art:hover {
     --glass-strength: 1;
     cursor: pointer;
 }
 
-/* Background floating orbs */
-.carousel__art-extra-orb{
+/* Floating Orb Background Ring */
+.carousel__art-extra-orb {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-
+    
     border-radius: 50%;
     aspect-ratio: 1/1;
     border: 1px solid rgba(255, 255, 255, 0.35);
     opacity: 0.7;
     z-index: 0;
     pointer-events: none;
-
+    
     transition: transform 0.35s ease, opacity 0.35s ease;
 }
 
-.carousel__art:hover .carousel__art-extra-orb{
+.carousel__art:hover .carousel__art-extra-orb {
     transform: translate(-50%, -50%) scale(1.05);
     opacity: 1;
 }
 
-/* --- Glass Orb Shared Styles --- */
+/* Liquid Glass Layers (Pseudo-elements) */
 .carousel__art::before,
-.carousel__art::after{
+.carousel__art::after {
     content: "";
     position: absolute;
     top: 50%;
@@ -246,32 +264,19 @@
     border-radius: 50%;
     z-index: 0;
     border: 1px solid rgba(255, 255, 255, 0.5);
+    
+    will-change: transform, opacity;
     transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease;
 }
 
 /* Outer Glass Layer */
-.carousel__art::before{
+.carousel__art::before {
     height: 100%;
     aspect-ratio: 1/1;
     background:
-        radial-gradient(
-            circle at 75% 20%, 
-            rgba(255, 255, 255, 
-            var(--glass-strength)) 0%, 
-            transparent 40%
-        ),
-        radial-gradient(
-            circle at 30% 80%, 
-            rgba(255, 255, 255, 
-            calc(var(--glass-strength) * 0.7)) 0%, 
-            transparent 45%
-        ),
-        radial-gradient(
-            circle at 50% 50%,
-            rgba(56, 189, 248, calc(var(--glass-strength) * 0.4)) 0%, 
-            rgba(37, 99, 235, calc(var(--glass-strength) * 0.25)) 40%,
-            transparent 80%
-        );
+        radial-gradient(circle at 75% 20%, rgba(255, 255, 255, var(--glass-strength)) 0%, transparent 40%),
+        radial-gradient(circle at 30% 80%, rgba(255, 255, 255, calc(var(--glass-strength) * 0.7)) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(56, 189, 248, calc(var(--glass-strength) * 0.4)) 0%, rgba(37, 99, 235, calc(var(--glass-strength) * 0.25)) 40%, transparent 80%);
 }
 
 /* Inner Core Layer */
@@ -279,50 +284,38 @@
     height: 70%;
     aspect-ratio: 1/1;
     background: 
-        radial-gradient(
-            circle at 70% 25%,
-            rgba(255, 255, 255, var(--glass-strength)) 0%,
-            transparent 55%
-        ),
-        radial-gradient(
-            circle at 35% 85%, 
-            rgba(255, 255, 255, calc(var(--glass-strength) * 0.7)) 0%,
-            transparent 48%
-        ),
-        radial-gradient(
-            circle at 50% 50%,
-            rgba(56, 189, 248, calc(var(--glass-strength) * 0.35)) 0%,
-            transparent 90%
-        );
+        radial-gradient(circle at 70% 25%, rgba(255, 255, 255, var(--glass-strength)) 0%, transparent 55%),
+        radial-gradient(circle at 35% 85%, rgba(255, 255, 255, calc(var(--glass-strength) * 0.7)) 0%, transparent 48%),
+        radial-gradient(circle at 50% 50%, rgba(56, 189, 248, calc(var(--glass-strength) * 0.35)) 0%, transparent 90%);
 }
 
-/* Active/Hover logic for Glass Orb */
+/* Glass Active States */
 .carousel__slide.is-active .carousel__art::before,
-.carousel__slide.is-active .carousel__art::after{
+.carousel__slide.is-active .carousel__art::after {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
     transition-delay: 0.3s;
 }
 
+/* Glass Hover States (Breathing effect) */
 .carousel__slide.is-active .carousel__art:hover::before,
-.carousel__slide.is-active .carousel__art:hover::after{
+.carousel__slide.is-active .carousel__art:hover::after {
     transition-delay: 0s;
     transform: translate(-50%, -50%) scale(1.03);
 }
 
-.carousel__art:hover::before{
+.carousel__art:hover::before {
     box-shadow: 0 14px 30px rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(24px) saturate(125%);
 }
 
-.carousel__art:hover::after{
+.carousel__art:hover::after {
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.5), inset 0 0 16px rgba(255, 255, 255, calc(var(--glass-strength) * 0.4));
     backdrop-filter: blur(18px) saturate(150%);
 }
 
-/* ==========================================================================
-   8. CLOTHING STACK (Images inside the orb)
-   ========================================================================== */
+/* 6. CLOTHING STACK (EXPLOSION ANIMATION)
+   -------------------------------------------------------------------------- */
 .outfit-stack {
     position: absolute;
     width: 100%;
@@ -330,14 +323,14 @@
     z-index: 1;
 }
 
-.clothing-piece{
+.clothing-piece {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
 }
 
-.clothing-piece img{
+.clothing-piece img {
     position: absolute;
     inset: 0;
     margin: auto;
@@ -345,25 +338,27 @@
     max-height: 100%;
     object-fit: contain;
     display: block;
-    transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.25, 0.8, 0.4, 1);
+    
+    will-change: transform, opacity;
+    transition: opacity 0.45s ease, transform 0.45s var(--orb-hover-ease);
 }
 
 .clothing-piece .main { z-index: 2; }
 .alt-item { opacity: 0; }
 .carousel__art:hover .alt-item { opacity: 1; }
 
-/* -- Stack Positioning -- */
-.clothing-piece--beanie { top: 0; height: 10%; }
-.clothing-piece--hat    { top: 2%; height: 9%; }
-.clothing-piece--jacket { top: 10%; height: 40%; }
+/* Item Positions */
+.clothing-piece--beanie  { top: 0; height: 10%; }
+.clothing-piece--hat     { top: 2%; height: 9%; }
+.clothing-piece--jacket  { top: 10%; height: 40%; }
 .clothing-piece--shirt, 
-.clothing-piece--tshirt { top: 15%; height: 30%; }
-.clothing-piece--sweater{ top: 15%; height: 35%; }
-.clothing-piece--hoodie { top: 0; height: 45%; }
-.clothing-piece--shorts { top: 43%; height: 27%; }
-.clothing-piece--pants  { top: 45%; height: 55%; }
+.clothing-piece--tshirt  { top: 15%; height: 30%; }
+.clothing-piece--sweater { top: 15%; height: 35%; }
+.clothing-piece--hoodie  { top: 0; height: 45%; }
+.clothing-piece--shorts  { top: 43%; height: 27%; }
+.clothing-piece--pants   { top: 45%; height: 55%; }
 
-/* -- Animation Delays & Transforms (Explosion Effect) -- */
+/* Animation Delays */
 .alt-item--hoodie1 { transition-delay: 0ms; }
 .alt-item--pants1  { transition-delay: 15ms; }
 .alt-item--sweater1, 
@@ -372,6 +367,7 @@
 .alt-item--hoodie2 { transition-delay: 70ms; }
 .alt-item--hat1    { transition-delay: 80ms; }
 
+/* Hover Transformations (Explosion) */
 /* Group 1: Fly Left/Up */
 .carousel__art:hover .alt-item--hoodie1 { transform: translate(-100px, -20px) rotate(-20deg); }
 .carousel__art:hover .alt-item--tshirt1 { transform: translate(-100px, 30px) rotate(-30deg); }
@@ -381,20 +377,18 @@
 /* Group 2: Fly Right/Up */
 .carousel__art:hover .alt-item--hoodie2 { transform: translate(100px, -20px) rotate(20deg); }
 .carousel__art:hover .alt-item--tshirt2 { transform: translate(100px, 30px) rotate(30deg); }
-.carousel__art:hover .alt-item--sweater1{ transform: translate(100px, -40px) rotate(35deg); }
+.carousel__art:hover .alt-item--sweater1 { transform: translate(100px, -40px) rotate(35deg); }
 .carousel__art:hover .alt-item--pants1,
 .carousel__art:hover .alt-item--shorts1 { transform: translate(100px); }
 
-
-/* ==========================================================================
-   9. CONTROLS (Arrows & Dots)
-   ========================================================================== */
-.carousel__arrow{
+/* 7. CONTROLS (ARROWS & DOTS)
+   -------------------------------------------------------------------------- */
+.carousel__arrow {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     z-index: 20;
-
+    
     background: transparent;
     border: none;
     cursor: pointer;
@@ -408,14 +402,12 @@
 .carousel__arrow--next { right: 1rem; }
 .carousel__arrow--prev svg { transform: scaleX(-1); }
 
-.carousel__arrow:hover{
+.carousel__arrow:hover {
     color: white;
     transform: translateY(-50%) scale(1.1);
 }
-
 .carousel__arrow:active { transform: translateY(-50%) scale(0.95); }
 
-/* Focus States */
 .carousel__arrow:focus-visible,
 .carousel__dot:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.9);
@@ -423,26 +415,26 @@
     border-radius: 999px;
 }
 
-/* Dots Container */
+/* Dots Sliding Window */
 .carousel__dots {
     position: absolute;
     bottom: 1.4rem;
     left: 50%;
     transform: translateX(-50%);
-
+    
     width: 90px;
     height: 36px;
     border-radius: 999px;
-
+    
     border: 1px solid rgba(148, 163, 184, 0.35);
     background: radial-gradient(circle at top left, rgba(240, 232, 213, 0.4), rgba(240, 232, 213, 0.2));
     backdrop-filter: blur(10px);
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.6);
+    box-shadow: var(--shadow-soft);
     z-index: 20;
     pointer-events: none;
 }
 
-.carousel__dot{
+.carousel__dot {
     position: absolute;
     top: 50%;
     padding: 0;
@@ -451,7 +443,7 @@
     background: rgba(148, 163, 184, 0.35);
     cursor: pointer;
     pointer-events: auto;
-
+    
     transition:
         left 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
         transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
@@ -461,9 +453,9 @@
         background-color 0.5s ease;
 }
 
-/* Inactive Dots (Small) */
+/* Dot Positions (Sliding Window Logic) */
 .carousel__dot[data-pos="0"],
-.carousel__dot[data-pos="2"]{
+.carousel__dot[data-pos="2"] {
     width: 7px;
     height: 7px;
     opacity: 0.8;
@@ -480,25 +472,23 @@
     border-color: white;
 }
 
-/* Active Dot (Large) */
-.carousel__dot[data-pos="1"]{
+.carousel__dot[data-pos="1"] {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 14px;
     height: 14px;
     opacity: 1;
     z-index: 10;
-
-    background: var(--hero-dot-color, var(--color-accent));
+    
+    background: var(--hero-dot-color);
     border-color: rgba(209, 213, 219, 0.85);
-    box-shadow: 0 0 12px var(--hero-dot-glow, var(--color-accent-soft));
+    box-shadow: 0 0 12px var(--hero-dot-glow);
 }
 
-/* ==========================================================================
-   10. ANIMATIONS
-   ========================================================================== */
+/* 8. ANIMATIONS
+   -------------------------------------------------------------------------- */
 
-/* 10a. Background Reveal */
+/* Background Reveal (Clip Path) */
 @keyframes circleExpand {
     0%   { clip-path: circle(0% at 50% 50%); }
     100% { clip-path: circle(150% at 50% 50%); }
@@ -509,7 +499,7 @@
     animation: circleExpand 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
-/* 10b. Info Panel Fade Up */
+/* Info Panel Fade Up */
 @keyframes fadeInUp {
     0%   { transform: translateY(40px); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
@@ -526,8 +516,8 @@
     transition: opacity 0.3s ease;
 }
 
-/* 10c. Art Slide Directions */
-@keyframes slideInRight{
+/* Art Slide Transitions */
+@keyframes slideInRight {
     0%   { transform: translateX(50vw); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
 }
@@ -535,7 +525,7 @@
     0%   { transform: translateX(0); opacity: 1; }
     100% { transform: translateX(-50vw); opacity: 0; } 
 }
-@keyframes slideInLeft{
+@keyframes slideInLeft {
     0%   { transform: translateX(-50vw); opacity: 0; }
     100% { transform: translateX(0); opacity: 1; }
 }
@@ -544,12 +534,13 @@
     100% { transform: translateX(50vw); opacity: 0; } 
 }
 
+/* Apply Slide Animations */
 .slide-enter-from-right .carousel__art { animation: slideInRight var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-.slide-exit-to-left .carousel__art { animation: slideOutLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-.slide-enter-from-left .carousel__art { animation: slideInLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-.slide-exit-to-right .carousel__art { animation: slideOutRight var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-exit-to-left .carousel__art     { animation: slideOutLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-enter-from-left .carousel__art  { animation: slideInLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-exit-to-right .carousel__art    { animation: slideOutRight var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
 
-/* Disable pointer evetns during animation */
+/* Pointer Event Management during Animation */
 .slide-enter-from-right .carousel__art,
 .slide-enter-from-left .carousel__art,
 .slide-exit-to-left .carousel__art,
@@ -557,10 +548,9 @@
     pointer-events: none;
 }
 
-/* ==========================================================================
-   11. ACCESSIBILITY & REDUCED MOTION
-   ========================================================================== */
-@media (prefers-reduced-motion: reduce){
+/* 9. ACCESSIBILITY
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
     .hero-carousel * {
         animation: none !important;
         transition: none !important;
