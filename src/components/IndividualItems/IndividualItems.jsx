@@ -3,7 +3,11 @@ import './IndividualItems.css';
 
 export default function IndividualItems() {
     return (
-        <section className="individual-items" aria-label="Individual Items Collection">
+        <section 
+            className="individual-items" 
+            aria-label="Individual Items Collection"
+            data-nav-text="dark"
+        >
             <div className="individual-items__container">
                 <header className="individual-items__header">
                     <h2 className="individual-items__title">

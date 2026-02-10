@@ -142,6 +142,7 @@ export default function Hero() {
         <section 
             className="hero-carousel" 
             data-theme={carousel.activeTheme}
+            data-nav-text="light"
             role="region"
             aria-roledescription="carousel"
             aria-label="Featured Clothing Collections"

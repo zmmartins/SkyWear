@@ -14,7 +14,7 @@
   /* NEW: Dynamic Color Transition */
   /* Defaults to global white text if variable isn't set */
   color: var(--navbar-text-color, var(--color-text)); 
-  transition: color 0.1s linear; /* Smooths out any small calculation jitters */
+  transition: color 0.3s linear; /* Smooths out any small calculation jitters */
 }
 
 .navbar__logo {

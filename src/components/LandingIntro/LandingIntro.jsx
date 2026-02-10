@@ -2,14 +2,11 @@ import React, { useEffect } from "react";
 import "./LandingIntro.css";
 
 export default function LandingIntro() {
-    
-    // Force Navbar to be transparent/black text when this component mounts
-    useEffect(() => {
-        document.documentElement.style.setProperty('--navbar-text-color', '#000000');
-    }, []);
-
     return (
-        <section className="landing-intro">
+        <section 
+            className="landing-intro"
+            data-nav-text="dark"
+        >
             
             {/* NEW: Navbar Shield 
                 A solid white block that covers ONLY the area behind the navbar.
