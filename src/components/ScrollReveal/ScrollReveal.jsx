@@ -1,191 +1,192 @@
-import React, { useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import './ScrollReveal.css';
 import { clamp } from '../../utils/clamp';
 
-// --- HELPERS ---
-
-// Linear Interpolation for smooth dampening
-const lerp = (start, end, factor) => start + (end - start) * factor;
-
 /**
- * Interpolates between two RGB colors based on progress (0 to 1).
- * Used for the Navbar text color transition.
+ * @param {number} revealStart - (0 to 1) Scroll percentage to wait before expanding.
+ * @param {boolean} autoComplete - If true, automatically scrolls to finish the reveal.
+ * @param {number} duration - Speed of the auto-complete animation in milliseconds.
  */
-const interpolateColor = (progress) => {
-    // Start: White (249, 250, 251) -> End: Dark (17, 24, 39)
-    const r = Math.round(lerp(249, 17, progress));
-    const g = Math.round(lerp(250, 24, progress));
-    const b = Math.round(lerp(251, 39, progress));
-    return `rgb(${r}, ${g}, ${b})`;
-};
+export default function ScrollReveal({ 
+    children, 
+    className = "", 
+    revealStart = 0,
+    autoComplete = false,
+    duration = 700 
+}) {
+    const trackRef = useRef(null);
+    const revealLayerRef = useRef(null);
+    const containerRef = useRef(null); 
+    
+    const isLockedRef = useRef(false);
+    const prevProgressRef = useRef(0);
 
-/**
- * COMPONENT: ScrollReveal
- * ------------------------------------------------------------------
- * A sticky container that orchestrates the "Liquid Orb" reveal animation.
- * It maps scroll progress to 3 distinct animation phases.
- */
-export default function ScrollReveal({ children }) {
-    // 1. REFS (Direct DOM access for high-performance animation)
-    const trackRef  = useRef(null);
-    const glass1Ref = useRef(null); // Weak Orb
-    const glass2Ref = useRef(null); // Strong Orb
-    const revealRef = useRef(null); // White Foreground Layer
+    // --- 1. SCROLL HIJACKING UTILITIES ---
+    const preventDefault = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    };
 
-    // 2. MUTABLE STATE (Avoids React renders during scroll loop)
-    const state = useRef({
-        target: 0,   // Where we want to be (based on scroll position)
-        current: 0,  // Where we currently are (lerped value)
-        range: 0,    // Total scrollable distance in pixels
-        isActive: false // Optimization: Only loop when necessary
-    });
+    const preventKeyScroll = (e) => {
+        const keys = [' ', 'PageUp', 'PageDown', 'End', 'Home', 'ArrowUp', 'ArrowDown'];
+        if (keys.includes(e.key)) {
+            preventDefault(e);
+        }
+    };
 
-    // 3. CHILDREN SEPARATION
-    // We expect exactly two children: [Hero, Content]
-    const [HeroNode, ItemsNode] = React.Children.toArray(children);
+    const lockUserScroll = () => {
+        document.documentElement.style.setProperty('scroll-snap-type', 'none', 'important');
+        document.documentElement.style.setProperty('scroll-behavior', 'auto', 'important');
+        
+        window.addEventListener('wheel', preventDefault, { passive: false });
+        window.addEventListener('touchmove', preventDefault, { passive: false });
+        window.addEventListener('keydown', preventKeyScroll, { passive: false });
+        
+        isLockedRef.current = true;
+    };
 
-    // 4. MEASUREMENT EFFECT (Resize Observer)
-    useLayoutEffect(() => {
-        if (!trackRef.current) return;
+    const unlockUserScroll = () => {
+        document.documentElement.style.removeProperty('scroll-snap-type');
+        document.documentElement.style.removeProperty('scroll-behavior');
 
-        const measure = () => {
-            // Calculate how far we can scroll within this component.
-            // Formula: Container Height - Sticky Viewport Height
-            const rect = trackRef.current.getBoundingClientRect();
-            state.current.range = rect.height - window.innerHeight;
+        window.removeEventListener('wheel', preventDefault);
+        window.removeEventListener('touchmove', preventDefault);
+        window.removeEventListener('keydown', preventKeyScroll);
+        
+        isLockedRef.current = false;
+    };
+
+    // --- 2. VISUAL UPDATE LOGIC ---
+    const updateScrollLogic = useCallback(() => {
+        if (!trackRef.current || !revealLayerRef.current || !containerRef.current) return null;
+
+        const rect = trackRef.current.getBoundingClientRect();
+        
+        const viewportHeight = window.innerHeight;
+        const scrollableDistance = rect.height - viewportHeight;
+        const rawProgress = -rect.top / scrollableDistance;
+        const progress = clamp(rawProgress, 0, 1);
+
+        containerRef.current.style.setProperty('--scroll-progress', progress);
+
+        let circleProgress = 0;
+        if (progress > revealStart) {
+            const phaseProgress = (progress - revealStart) / (1 - revealStart);
+            circleProgress = phaseProgress;
+        }
+
+        const radius = circleProgress * 100;
+        revealLayerRef.current.style.clipPath = `circle(${radius}% at 50% 50%)`;
+
+        if (radius < 1) {
+            revealLayerRef.current.style.pointerEvents = 'none';
+        } else {
+            revealLayerRef.current.style.pointerEvents = 'auto';
+        }
+
+        return { progress, rect };
+    }, [revealStart]);
+
+    // --- 3. SMOOTH SCROLL LOOP ---
+    const scrollToTarget = (targetY) => {
+        const startY = window.scrollY;
+        const diff = targetY - startY;
+        let startTime = null;
+        
+        const ease = (t) => 1 - Math.pow(1 - t, 4);
+
+        const step = (timestamp) => {
+            if (!startTime) startTime = timestamp;
+            const time = timestamp - startTime;
+            
+            const percent = Math.min(time / duration, 1);
+
+            const newY = startY + diff * ease(percent);
+            window.scrollTo({ top: newY, behavior: 'auto' });
+
+            updateScrollLogic();
+
+            if (percent < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                unlockUserScroll();
+                window.scrollTo({ top: targetY, behavior: 'auto' });
+                updateScrollLogic();
+            }
         };
 
-        // Modern ResizeObserver is more performant than window 'resize'
-        const resizeObserver = new ResizeObserver(measure);
-        resizeObserver.observe(trackRef.current);
-        
-        measure(); // Initial measurement
+        window.requestAnimationFrame(step);
+    };
 
-        return () => resizeObserver.disconnect();
-    }, []);
-
-    // 5. ANIMATION LOOP
     useEffect(() => {
-        let rAFId;
-        
-        // A. The Scroll Listener (Inputs)
-        const onScroll = () => {
-            if (!trackRef.current) return;
+        const handleScroll = () => {
+            const state = updateScrollLogic();
+            if (!state) return;
             
-            // Get relative scroll position of the tracker
-            const rect = trackRef.current.getBoundingClientRect();
-            
-            // Calculate progress: 0 (start) to 1 (end)
-            // We use -rect.top because the element moves up as we scroll down
-            const rawProgress = -rect.top / state.current.range;
-            
-            state.current.target = clamp(rawProgress, 0, 1);
-            
-            // Wake up the loop if it was sleeping
-            if (!state.current.isActive) {
-                state.current.isActive = true;
-                loop();
-            }
-        };
+            const { progress, rect } = state;
+            const direction = progress - prevProgressRef.current;
 
-        // B. The Animation Loop (Outputs)
-        const loop = () => {
-            const { current, target } = state.current;
-            
-            // 1. Calculate difference
-            const diff = target - current;
-            
-            // 2. Sleep Check: If we are close enough, snap and stop loop to save battery
-            if (Math.abs(diff) < 0.0001) {
-                state.current.current = target;
-                state.current.isActive = false; // Stop looping
-                render(target); // Render final frame
-                return; 
-            }
-
-            // 3. Lerp (Smooth movement)
-            const nextProgress = lerp(current, target, 0.08); // 0.08 = smoothing factor
-            state.current.current = nextProgress;
-            
-            // 4. Render Updates
-            render(nextProgress);
-            
-            // 5. Next Frame
-            rAFId = requestAnimationFrame(loop);
-        };
-
-        // C. The Renderer (DOM Manipulation)
-        const render = (progress) => {
-            // PHASE 1: Weak Orb (0.0 -> 0.4)
-            if (glass1Ref.current) {
-                const p = clamp(progress / 0.4, 0, 1);
-                // Optimization: Hide via scale(0) if not needed to prevent paint overlap
-                const scale = p < 0.01 ? 0 : p; 
-                glass1Ref.current.style.transform = `translate3d(0,0,0) scale(${scale})`;
-            }
-
-            // PHASE 2: Strong Orb (0.2 -> 0.7)
-            if (glass2Ref.current) {
-                const p = clamp((progress - 0.2) / 0.5, 0, 1);
-                const scale = p < 0.01 ? 0 : p;
-                glass2Ref.current.style.transform = `translate3d(0,0,0) scale(${scale})`;
-            }
-
-            // PHASE 3: Content Reveal & Navbar Color (0.5 -> 1.0)
-            if (revealRef.current) {
-                // Normalize 0.5-1.0 range to 0.0-1.0
-                const p = clamp((progress - 0.5) / 0.5, 0, 1);
+            // AUTO-COMPLETE TRIGGER
+            if (autoComplete && !isLockedRef.current && Math.abs(direction) > 0.0001) {
                 
-                // Clip Path Animation
-                // 150% ensures the circle fully covers the screen corners
-                revealRef.current.style.clipPath = `circle(${p * 150}% at 50% 50%)`;
-                
-                // Navbar Color Update
-                // Only update if we are in the transition phase to avoid unnecessary style recalcs
-                if (progress > 0.45 && progress < 1.0) {
-                    const color = interpolateColor(p);
-                    document.documentElement.style.setProperty('--navbar-text-color', color);
-                } else if (progress <= 0.45) {
-                    // Force white at start
-                    document.documentElement.style.setProperty('--navbar-text-color', 'rgb(249, 250, 251)');
+                // ZONE LOGIC: Inside the transition zone (0.3 -> 1.0)
+                if (progress > (revealStart + 0.001) && progress < 0.999) {
+                    
+                    if (direction > 0) {
+                        // SCROLL DOWN -> Go to End (1.0)
+                        lockUserScroll();
+                        
+                        const currentScrollY = window.scrollY;
+                        const absoluteTopOfTrack = currentScrollY + rect.top;
+                        const viewportHeight = window.innerHeight;
+                        const targetScrollY = absoluteTopOfTrack + rect.height - viewportHeight;
+                        
+                        scrollToTarget(targetScrollY);
+                    } 
+                    else if (direction < 0) {
+                        // SCROLL UP -> Go to Start (0.0)
+                        // CHANGED: Previously went to 'revealStart' (0.3). 
+                        // Now goes to 0.0 to ensure LandingIntro text slides back in.
+                        lockUserScroll();
+                        
+                        const currentScrollY = window.scrollY;
+                        const absoluteTopOfTrack = currentScrollY + rect.top;
+                        
+                        // Target: The very top of the component (Progress 0)
+                        const targetScrollY = absoluteTopOfTrack; 
+                        
+                        scrollToTarget(targetScrollY);
+                    }
                 }
             }
+            
+            prevProgressRef.current = progress;
         };
 
-        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', handleScroll);
         
-        // Initial Trigger
-        onScroll();
+        handleScroll();
 
         return () => {
-            window.removeEventListener('scroll', onScroll);
-            cancelAnimationFrame(rAFId);
-            // Reset navbar color on unmount
-            document.documentElement.style.removeProperty('--navbar-text-color');
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+            unlockUserScroll(); 
         };
-    }, []);
+    }, [updateScrollLogic, revealStart, autoComplete, duration]);
 
     return (
-        <div className="scroll-reveal" ref={trackRef}>
-            {/* Snap points allow CSS Scroll Snapping to catch the start/end */}
-            <div className="scroll-reveal__snap-point scroll-reveal__snap-point--start" />
-            <div className="scroll-reveal__snap-point scroll-reveal__snap-point--end" />
-
-            <div className="scroll-reveal__sticky">
-                {/* 1. Background Layer (Hero) */}
-                <div className="scroll-reveal__layer scroll-reveal__layer--back">
-                    {HeroNode}
+        <div className={`scroll-reveal ${className}`} ref={trackRef}>
+            <div className="scroll-reveal__sticky-container" ref={containerRef}>
+                <div className="scroll-reveal__layer scroll-reveal__layer--base">
+                    {children[0] || null}
                 </div>
-
-                {/* 2. Animation Layer (Glass Orbs) */}
-                <div className="scroll-reveal__layer scroll-reveal__layer--glass">
-                    <div className="glass-orb glass-orb--weak" ref={glass1Ref} />
-                    <div className="glass-orb glass-orb--strong" ref={glass2Ref} />
-                </div>
-
-                {/* 3. Foreground Layer (Next Section) */}
-                <div className="scroll-reveal__layer scroll-reveal__layer--front" ref={revealRef}>
-                    {ItemsNode}
+                <div 
+                    className="scroll-reveal__layer scroll-reveal__layer--reveal" 
+                    ref={revealLayerRef}
+                >
+                    {children[1] || null}
                 </div>
             </div>
         </div>

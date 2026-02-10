@@ -9,10 +9,20 @@ function App(){
   return(
     <main>
       <Navbar />
-
-      <LandingIntro/>
-
-      <Hero />
+      
+      {/* revealStart={0.6} -> Text slides out until 60% scroll.
+        autoComplete={true} -> Once we hit 60%, the page takes control 
+                               and smooth-scrolls to the end of the reveal.
+      */}
+      <ScrollReveal 
+          revealStart={0.3} 
+          autoComplete={true} 
+          duration={1200} /* Slower, more dramatic (1.2 seconds) */
+      >
+        <LandingIntro />
+        <Hero/>
+      </ScrollReveal>
+      
       <IndividualItems />
 
     </main>

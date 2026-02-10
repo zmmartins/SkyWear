@@ -11,6 +11,13 @@ export default function LandingIntro() {
     return (
         <section className="landing-intro">
             
+            {/* NEW: Navbar Shield 
+                A solid white block that covers ONLY the area behind the navbar.
+                This prevents the expanding orange circle/dots from showing up 
+                behind the translucent navigation. 
+            */}
+            <div className="landing-intro__navbar-shield" aria-hidden="true" />
+
             {/* LAYER 1: The standard orange dots (background) */}
             <div className="landing-intro__dots-layer" aria-hidden="true" />
 
@@ -22,7 +29,6 @@ export default function LandingIntro() {
                 aria-hidden="true"
             >
                 <defs>
-                    {/* A Mask that is White (Opaque) everywhere, except the Text (Black/Transparent) */}
                     <mask id="text-cutout">
                         <rect x="0" y="0" width="100%" height="100%" fill="white" />
                         <text 
@@ -41,7 +47,6 @@ export default function LandingIntro() {
                     </mask>
                 </defs>
 
-                {/* The White Overlay applying the mask */}
                 <rect 
                     x="0" 
                     y="0" 
@@ -61,11 +66,11 @@ export default function LandingIntro() {
             {/* LAYER 5: The Message */}
             <div className="landing-intro__content">
                 <h1 className="landing-intro__line landing-intro__line--top">
-                    YOU PICK <br /> THE LOOK
+                    <span>YOU PICK <br /> THE LOOK</span>
                 </h1>
                 
                 <h1 className="landing-intro__line landing-intro__line--bottom">
-                    WE'LL HAVE IT <br /> WAITING
+                    <span>WE'LL HAVE IT <br /> WAITING</span>
                 </h1>
             </div>
         </section>
