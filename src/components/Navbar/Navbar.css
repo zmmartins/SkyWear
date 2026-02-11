@@ -1,9 +1,10 @@
 .navbar {
   height: var(--navbar-height);
   line-height: var(--navbar-height);
+  
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  
   padding: 0 2rem;
   backdrop-filter: blur(12px);
   position: sticky;
@@ -11,33 +12,190 @@
   z-index: 50; 
   box-shadow: 0 4px 22px rgba(0, 0, 0, 0.22);
   
-  /* NEW: Dynamic Color Transition */
-  /* Defaults to global white text if variable isn't set */
-  color: var(--navbar-text-color, var(--color-text)); 
-  transition: color 0.3s linear; /* Smooths out any small calculation jitters */
+  color: var(--navbar-text-color, #ffffff); 
+  transition: color 0.3s linear; 
 }
 
+/* --- COLUMN LAYOUT --- */
+.navbar__col {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__col--left {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.navbar__col--center {
+  flex: 0 0 auto;
+}
+
+.navbar__col--right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* --- ELEMENT STYLES --- */
 .navbar__logo {
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  font-size: 1.25rem;
+  color: inherit;
 }
 
 .navbar__actions {
   display: flex;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 1rem; 
 }
 
-/* NEW: Update Ghost Button to respect the dynamic color */
-.btn--ghost {
-  /* Use the same variable for text */
-  color: var(--navbar-text-color, var(--color-text)); 
-  /* Use the same variable for border (or currentColor) */
-  border-color: var(--navbar-text-color, var(--color-border));
+/* --- LIQUID GLASS ELEMENTS --- */
+/* Applied to: Buttons AND Context Menu */
+
+.btn-text, 
+.btn-cart,
+.navbar__context-menu {
+  appearance: none;
+  cursor: pointer;
+  
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  
+  /* Typography */
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: inherit; 
+  
+  /* SHAPE (Always visible structure) */
+  border-radius: 16px; 
+  
+  /* --- DEFAULT STATE: INVISIBLE / CLEAN --- */
+  
+  /* 1. Background: Transparent */
+  background: transparent;
+  
+  /* 2. Blur: None */
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  
+  /* 3. Border: Transparent (Important: Reserves space so it doesn't jump on hover) */
+  border: 1px solid transparent;
+  
+  /* 4. Shadow: None */
+  box-shadow: none;
+    
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Specific Tweak: Context Menu cursor */
+.navbar__context-menu {
+  cursor: pointer; /* Usually context menus aren't clicked, but hover will still work */
+  height: 35px;
+  gap: 0.1rem;
+}
+
+
+/* Specific Tweak for Cart Button layout */
+.btn-cart {
+  gap: 0.3rem;
+}
+
+/* --- HOVER STATE: REVEAL LIQUID GLASS --- */
+.btn-text:hover, 
+.btn-cart:hover, 
+.navbar__context-menu:hover {
+  
+  /* 1. Lift Effect */
+  transform: translateY(-2px) scale(1.02);
+
+  /* 2. Glass Material (The effect you liked) */
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.15) 0%, 
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  
+  
+  /* 4. Surface Tension (Borders appear) */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  
+  /* 5. Depth & Glow */
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.05), 
+    inset 0 0 10px rgba(255, 255, 255, 0.1); 
+}
+
+/* Active/Click State */
+.btn-text:active, 
+.btn-cart:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* HOVER STATES */
+/* Only apply hover effect to actual buttons, not the context label */
+.btn-text:hover, .btn-cart:hover {
+  transform: translateY(-2px) scale(1.02);
+  
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.25) 0%, 
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  
+  border-top-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Active/Click State */
+.btn-text:active, .btn-cart:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* --- CART ICON MASK --- */
+.navbar__cart-icon {
+  width: 20px; 
+  height: 20px;
+  display: block;
+  
+  background-color: currentColor;
+  
+  mask-image: url('/assets/img/logo.png');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  
+  -webkit-mask-image: url('/assets/img/logo.png');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.navbar__cart-count {
+  font-size: 0.8rem;
+  position: relative;
+  top: 1px; 
 }
 
 @media (max-width: 768px) {
   .navbar {
     padding: 0 1rem;
+  }
+  
+  /* On mobile, maybe scale down the glass elements */
+  .btn-text, .btn-cart, .navbar__context-menu {
+    padding: 8px 16px;
+    font-size: 0.8rem;
   }
 }

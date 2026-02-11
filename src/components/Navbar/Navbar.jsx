@@ -1,61 +1,70 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./Navbar.css";
 
 export default function Navbar() {
     const navbarRef = useRef(null);
+    const [currentSection, setCurrentSection] = useState("INTRO");
 
     useEffect(() => {
-        // --- DYNAMIC COLOR LOGIC ---
         const handleScroll = () => {
             if (!navbarRef.current) return;
             
-            // 1. DEFINE PROBE POINTS
-            // We check the pixels directly under the Logo (Left) and the Actions (Right)
-            // This ensures we only switch colors when the background *at that spot* changes.
-            const y = navbarRef.current.offsetHeight / 2; 
-            const xLeft = 40; // Approx logo center
-            const xRight = window.innerWidth - 40; // Approx actions center
+            const centerX = window.innerWidth / 2;
+            const navbarCenterY = navbarRef.current.offsetHeight / 2;
             
-            // 2. HELPER: FIND COLOR PREFERENCE
-            // Looks through the stack of elements at (x, y) for a data-nav-text attribute
-            const getColorAtPoint = (x, y) => {
+            const getNavTextSetting = (x, y) => {
                 const elements = document.elementsFromPoint(x, y);
-                
                 for (const el of elements) {
-                    // Ignore the navbar itself
                     if (navbarRef.current.contains(el) || el === navbarRef.current) continue;
                     
-                    // Look for the closest section with a preference
                     const section = el.closest('[data-nav-text]');
-                    if (section) {
-                        return section.getAttribute('data-nav-text');
-                    }
+                    if (section) return section.getAttribute('data-nav-text');
                 }
-                return null; // No preference found
+                return null;
             };
 
-            const leftPref = getColorAtPoint(xLeft, y);
-            const rightPref = getColorAtPoint(xRight, y);
+            const pref = getNavTextSetting(centerX, navbarCenterY);
+            
+            // NOTE: You mentioned you inverted the attributes in your HTML,
+            // so we keep the logic simple here:
+            // if pref is 'dark' -> set color to dark (#111827)
+            // if pref is 'light' -> set color to light (#f9fafb)
 
-            // 3. DECIDE COLOR
-            // Logic: 
-            // - If EITHER side is over a "light" background (needs dark text), use Dark.
-            // - Otherwise, default to White.
-            // (You can invert this logic depending on which is the "safer" default)
-            let finalColor = "var(--color-text)"; // Default White/Light Grey
+            let finalColor = "#f9fafb"; 
 
-            if (leftPref === 'dark' || rightPref === 'dark') {
-                finalColor = "#000000"; // Force Black
-            } else if (leftPref === 'light' || rightPref === 'light') {
-                finalColor = "#f9fafb"; // Force White
+            if (pref === 'dark') {
+                finalColor = "#111827"; 
+            } else if (pref === 'light') {
+                finalColor = "#f9fafb"; 
             }
 
-            // 4. UPDATE CSS VARIABLE
             document.documentElement.style.setProperty('--navbar-text-color', finalColor);
+
+            // --- SECTION NAME DETECTION ---
+            const centerY = window.innerHeight / 2;
+            const centerElements = document.elementsFromPoint(centerX, centerY);
+            
+            let foundSection = "INTRO";
+
+            for (const el of centerElements) {
+                if (el.classList.contains('landing-intro') || el.closest('.landing-intro')) {
+                    foundSection = "INTRO";
+                    break;
+                } else if (el.classList.contains('hero-carousel') || el.closest('.hero-carousel')) {
+                    foundSection = "HERO";
+                    break;
+                } else if (el.classList.contains('individual-items') || el.closest('.individual-items')) {
+                    foundSection = "ITEMS";
+                    break;
+                } else if (el.classList.contains('items-grid') || el.closest('.items-grid')) {
+                    foundSection = "ITEMS";
+                    break;
+                }
+            }
+            
+            setCurrentSection(prev => prev !== foundSection ? foundSection : prev);
         };
 
-        // --- PERFORMANCE OPTIMIZATION ---
-        // Throttled scroll listener
         let ticking = false;
         const onScroll = () => {
             if (!ticking) {
@@ -70,7 +79,6 @@ export default function Navbar() {
         window.addEventListener('scroll', onScroll, { passive: true });
         window.addEventListener('resize', onScroll);
         
-        // Initial check on mount
         handleScroll();
 
         return () => {
@@ -81,11 +89,34 @@ export default function Navbar() {
 
     return(
         <header className="navbar" ref={navbarRef}>
-            <div className="navbar__logo">SkyWear</div>
-            <div className="navbar__actions">
-                <button className="btn btn--ghost">Sign in</button>
-                <button className="btn btn--primary">Cart (0)</button>
+            
+            {/* LEFT COLUMN */}
+            <div className="navbar__col navbar__col--left">
+                <span className="navbar__context-menu mono">
+                    <span>/</span>
+                    {currentSection}
+                </span>
             </div>
+
+            {/* CENTER COLUMN */}
+            <div className="navbar__col navbar__col--center">
+                <div className="navbar__logo">SkyWear</div>
+            </div>
+
+            {/* RIGHT COLUMN */}
+            <div className="navbar__col navbar__col--right">
+                <div className="navbar__actions">
+                    {/* Simplified Text Button */}
+                    <button className="btn-text">Sign in</button>
+                    
+                    {/* Cart with Logo Icon + Count */}
+                    <button className="btn-cart" aria-label="Cart">
+                        <span className="navbar__cart-count mono">0</span>
+                        <div className="navbar__cart-icon"></div>
+                    </button>
+                </div>
+            </div>
+            
         </header>
     );
 }
