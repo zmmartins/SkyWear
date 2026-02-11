@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import ScrollReveal from './components/ScrollReveal';
 import IndividualItems from './components/IndividualItems';
 import LandingIntro from "./components/LandingIntro";
+import IndividualItemsGrid from "./components/IndividualItemsGrid";
 
 function App(){
   return(
@@ -15,15 +16,16 @@ function App(){
                                and smooth-scrolls to the end of the reveal.
       */}
       <ScrollReveal 
-          revealStart={0.3} 
-          autoComplete={true} 
-          duration={1200} /* Slower, more dramatic (1.2 seconds) */
+          revealStart={0.3}     // Starts opening when you are 30% down
+          collapseStart={0.9}   // Starts closing automatically only when you are back to 70%
+          autoComplete={true}
       >
-        <LandingIntro />
-        <Hero/>
+          <LandingIntro />
+          <Hero />
       </ScrollReveal>
       
       <IndividualItems />
+      <IndividualItemsGrid />
 
     </main>
   );

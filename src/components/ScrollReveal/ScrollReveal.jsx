@@ -3,14 +3,16 @@ import './ScrollReveal.css';
 import { clamp } from '../../utils/clamp';
 
 /**
- * @param {number} revealStart - (0 to 1) Scroll percentage to wait before expanding.
+ * @param {number} revealStart - (0 to 1) Scroll percentage to trigger EXPAND (Landing -> Hero).
+ * @param {number} collapseStart - (0 to 1) Scroll percentage to trigger COLLAPSE (Hero -> Landing).
  * @param {boolean} autoComplete - If true, automatically scrolls to finish the reveal.
  * @param {number} duration - Speed of the auto-complete animation in milliseconds.
  */
 export default function ScrollReveal({ 
     children, 
     className = "", 
-    revealStart = 0,
+    revealStart = 0,        // Default start point for revealing
+    collapseStart = 0.8,    // NEW: Default trigger point for collapsing back (0.8 = 80% scroll)
     autoComplete = false,
     duration = 700 
 }) {
@@ -70,6 +72,7 @@ export default function ScrollReveal({
 
         containerRef.current.style.setProperty('--scroll-progress', progress);
 
+        // Visual calculation remains based on revealStart to keep the circle sync logic
         let circleProgress = 0;
         if (progress > revealStart) {
             const phaseProgress = (progress - revealStart) / (1 - revealStart);
@@ -130,11 +133,12 @@ export default function ScrollReveal({
             // AUTO-COMPLETE TRIGGER
             if (autoComplete && !isLockedRef.current && Math.abs(direction) > 0.0001) {
                 
-                // ZONE LOGIC: Inside the transition zone (0.3 -> 1.0)
+                // ZONE LOGIC: We are inside the active transition area
                 if (progress > (revealStart + 0.001) && progress < 0.999) {
                     
                     if (direction > 0) {
                         // SCROLL DOWN -> Go to End (1.0)
+                        // Trigger immediately if user is pushing forward past revealStart
                         lockUserScroll();
                         
                         const currentScrollY = window.scrollY;
@@ -146,17 +150,19 @@ export default function ScrollReveal({
                     } 
                     else if (direction < 0) {
                         // SCROLL UP -> Go to Start (0.0)
-                        // CHANGED: Previously went to 'revealStart' (0.3). 
-                        // Now goes to 0.0 to ensure LandingIntro text slides back in.
-                        lockUserScroll();
                         
-                        const currentScrollY = window.scrollY;
-                        const absoluteTopOfTrack = currentScrollY + rect.top;
-                        
-                        // Target: The very top of the component (Progress 0)
-                        const targetScrollY = absoluteTopOfTrack; 
-                        
-                        scrollToTarget(targetScrollY);
+                        // --- CHANGED LOGIC HERE ---
+                        // Only snap back if we have crossed the collapse threshold (e.g. < 0.8)
+                        // If progress is 0.9 and we scroll up, we allow manual control.
+                        if (progress < collapseStart) {
+                            lockUserScroll();
+                            
+                            const currentScrollY = window.scrollY;
+                            const absoluteTopOfTrack = currentScrollY + rect.top;
+                            const targetScrollY = absoluteTopOfTrack; 
+                            
+                            scrollToTarget(targetScrollY);
+                        }
                     }
                 }
             }
@@ -174,7 +180,7 @@ export default function ScrollReveal({
             window.removeEventListener('resize', handleScroll);
             unlockUserScroll(); 
         };
-    }, [updateScrollLogic, revealStart, autoComplete, duration]);
+    }, [updateScrollLogic, revealStart, collapseStart, autoComplete, duration]); // Added collapseStart to dependency
 
     return (
         <div className={`scroll-reveal ${className}`} ref={trackRef}>

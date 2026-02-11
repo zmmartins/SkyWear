@@ -140,12 +140,6 @@ p { margin: 0; }
 
 /* 7. MEDIA HELPERS 
 */
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  border-radius: var(--radius-lg); /* Matches your design tokens */
-}
 
 a {
   color: inherit;

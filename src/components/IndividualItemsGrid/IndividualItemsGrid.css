@@ -1,0 +1,238 @@
+/* ==========================================================================
+   PRODUCT GRID SECTION
+   ========================================================================== */
+
+.items-grid {
+    position: relative;
+    z-index: 20; 
+    background-color: #ffffff; 
+    width: 100%;
+    padding: 4rem 2rem 6rem; 
+    min-height: 50vh; 
+}
+
+.items-grid__container {
+    max-width: var(--max-width-content, 1400px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem; 
+}
+
+/* --- FILTER HEADER --- */
+.items-grid__header-row {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    padding-bottom: 1rem;
+    border-bottom: none; 
+}
+
+/* BIG ACTIVE TITLE */
+.items-grid__title-active {
+    font-size: clamp(5rem, 18vw, 18vw); 
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--color-accent, #f97316); 
+    margin-top: 5vh;
+    line-height: 0.85; 
+    letter-spacing: -0.04em;
+    text-align: center;
+    white-space: nowrap; 
+    
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    transform-origin: center center; 
+}
+
+/* FILTER NAVIGATION */
+.items-grid__filter-nav {
+    display: flex;
+    flex-wrap: nowrap; 
+    gap: 1rem;       
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative; 
+    z-index: 2;
+}
+
+.items-grid__filter-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    
+    font-family: inherit;
+    font-size: 0.9rem; 
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af; 
+    white-space: nowrap; 
+    
+    transition: color 0.3s ease; 
+    transform-origin: center center;
+    will-change: transform;
+}
+
+.items-grid__filter-btn:hover {
+    color: #111827; 
+}
+
+/* GRID LAYOUT */
+.items-grid__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 4rem 2rem; 
+}
+
+.items-grid__card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    cursor: pointer;
+    /* Ensure z-index context for hovering */
+    position: relative;
+    z-index: 1;
+}
+
+.items-grid__card:hover .items-grid__image {
+    transform: scale(1.05);
+}
+
+/* ==========================================================================
+   IMAGE WRAPPER & BLURRED BACKGROUND
+   ========================================================================== 
+*/
+
+.items-grid__image-wrapper {
+    width: 100%;
+    aspect-ratio: 3 / 4; 
+    overflow: hidden;
+    position: relative;
+    border-radius: 2px;
+    z-index: 1;
+    /* Optional: subtle shadow for the whole card */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* LAYER 1: BLURRED BACKGROUND (::before) */
+/* Sits at the bottom */
+.items-grid__image-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1; 
+
+    /* Background Image */
+    background-image: url('/assets/img/ItemsBg.jpeg');
+    background-size: cover;
+    background-position: center;
+
+    /* Blur Effect */
+    filter: blur(20px) brightness(0.9);
+    transform: scale(1.2); /* Scale up to hide blur artifacts at edges */
+}
+
+/* LAYER 2: FADING BORDERS MASK (::after) */
+/* Sits ON TOP of background, but BELOW the product */
+.items-grid__image-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2; 
+    
+    /* THE FADE EFFECT: */
+    /* A deep white inset shadow matches the page background (#ffffff). */
+    /* This covers the edges of the blurred image below it. */
+    box-shadow: inset 0 0 5px 5px #ffffff;
+    
+    /* Animation settings */
+    transition: opacity 0.5s ease;
+    opacity: 1; /* Visible by default (Soft Edges) */
+    pointer-events: none; 
+}
+
+/* HOVER STATE: HIDE MASK */
+/* When hovering the card, hide the white shadow to reveal rigid edges */
+.items-grid__card:hover .items-grid__image-wrapper::after {
+    opacity: 0;
+}
+
+/* LAYER 3: PRODUCT IMAGE */
+/* Sits on TOP of everything */
+.items-grid__image {
+    width: 100%;
+    height: 100%;
+    
+    /* Fit product inside the blurred frame */
+    object-fit: contain; 
+    padding: 15px;
+    
+    position: relative;
+    z-index: 3; /* Highest z-index ensures it's never faded by the mask */
+    
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15)); /* Pops the item off the background */
+}
+
+.items-grid__card:hover .items-grid__image {
+    transform: scale(1.05);
+}
+/* ========================================================================== */
+
+
+.items-grid__details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.items-grid__name {
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #111827;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.items-grid__price {
+    font-size: 1rem;
+    color: #4b5563; 
+    margin: 0;
+    font-variant-numeric: tabular-nums; 
+}
+
+.items-grid__empty {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.2rem;
+    padding: 4rem 0;
+}
+
+/* MOBILE ADJUSTMENT */
+@media (max-width: 768px) {
+    .items-grid__title-active {
+        font-size: 18vw; 
+        transform: none !important; 
+    }
+
+    .items-grid__filter-nav {
+        overflow-x: auto; 
+        justify-content: flex-start; 
+        padding-bottom: 10px; 
+        gap: 1rem;
+        scrollbar-width: none; 
+        -ms-overflow-style: none;
+    }
+    .items-grid__filter-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .items-grid__grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 3rem 1rem;
+    }
+}
