@@ -165,13 +165,13 @@ export default function IndividualItems() {
                 >
                     <img 
                         className="image-base"
-                        src="/assets/img/Promo1.png" 
+                        src="assets/img/Promo1.png" 
                         alt="Traveler carrying a bag" 
                         loading="lazy"
                     />
                     <img 
                         className="image-blur-overlay"
-                        src="/assets/img/Promo1.png" 
+                        src="assets/img/Promo1.png" 
                         alt="" 
                         aria-hidden="true"
                     />
