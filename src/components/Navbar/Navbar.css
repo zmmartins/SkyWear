@@ -1,19 +1,30 @@
 .navbar {
   height: var(--navbar-height);
-  line-height: var(--navbar-height);
-  
   display: flex;
   align-items: center;
-  
   padding: 0 2rem;
-  backdrop-filter: blur(12px);
+  
+  /* REMOVED backdrop-filter from here */
+  
   position: sticky;
   top: 0;
   z-index: 50; 
   box-shadow: 0 4px 22px rgba(0, 0, 0, 0.22);
-  
   color: var(--navbar-text-color, #ffffff); 
   transition: color 0.3s linear; 
+}
+
+/* NEW: Dedicated background layer.
+  By placing the frosted blur here, we prevent it from trapping
+  the backdrop-filters of the buttons inside the navbar.
+*/
+.navbar__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: none;
 }
 
 /* --- COLUMN LAYOUT --- */
@@ -25,6 +36,9 @@
 .navbar__col--left {
   flex: 1;
   justify-content: flex-start;
+  align-items: flex-start; 
+  align-self: flex-start; 
+  margin-top: calc((var(--navbar-height) - 37px) / 2); 
 }
 
 .navbar__col--center {
@@ -51,131 +65,125 @@
   gap: 1rem; 
 }
 
-/* --- LIQUID GLASS ELEMENTS --- */
-/* Applied to: Buttons AND Context Menu */
+/* ==========================================================================
+   BUTTONS & MODAL WRAPPER (Structural Base)
+   ========================================================================== */
 
 .btn-text, 
 .btn-cart,
-.navbar__context-menu {
+.navbar__context-menu-wrapper {
   appearance: none;
   cursor: pointer;
   
-  /* Layout */
+  /* Must be relative to anchor the absolute liquid layers */
+  position: relative; 
+  z-index: 10;
+  
+  border-radius: 24px; 
+  background: transparent;
+  border: none;
+}
+
+.btn-text, 
+.btn-cart {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 10px 20px;
-  
-  /* Typography */
+  height: 37px; 
+  line-height: 1;
   font-family: inherit;
   font-size: 0.8rem;
   text-transform: uppercase;
+  white-space: nowrap;
   color: inherit; 
-  
-  /* SHAPE (Always visible structure) */
-  border-radius: 16px; 
-  
-  /* --- DEFAULT STATE: INVISIBLE / CLEAN --- */
-  
-  /* 1. Background: Transparent */
-  background: transparent;
-  
-  /* 2. Blur: None */
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  
-  /* 3. Border: Transparent (Important: Reserves space so it doesn't jump on hover) */
-  border: 1px solid transparent;
-  
-  /* 4. Shadow: None */
-  box-shadow: none;
-    
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Specific Tweak: Context Menu cursor */
-.navbar__context-menu {
-  cursor: pointer; /* Usually context menus aren't clicked, but hover will still work */
-  height: 35px;
-  gap: 0.1rem;
+.navbar__context-menu-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+/* Keep text/content ON TOP of the glass layers */
+.btn-content {
+  position: relative;
+  z-index: 5;
+}
+
+/* ==========================================================================
+   THE LIQUID GLASS DOM LAYERS
+   ========================================================================== */
+
+/* Main container holding the 3 layers */
+.liquid-glass-container {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1; /* Keep behind text */
+  
+  /* Hide by default, reveal on hover */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* The 3 layers exactly matched to your specs */
+.liquid-glass__bend,
+.liquid-glass__face,
+.liquid-glass__edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+/* 1) Distortion + blur layer */
+.liquid-glass__bend {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  filter: url(#glass-blur);
+  z-index: 0;
+}
+
+/* 2) Subtle shadow / face */
+.liquid-glass__face {
+  box-shadow:
+    0 4px 4px rgba(0, 0, 0, 0.15),
+    0 0 12px rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+
+/* 3) Edge highlights */
+.liquid-glass__edge {
+  box-shadow:
+    inset 3px 3px 3px rgba(255, 255, 255, 0.45),
+    inset -3px -3px 3px rgba(255, 255, 255, 0.45);
+  z-index: 2;
+}
+
+/* --- TRIGGER REVEAL EFFECTS ON HOVER / OPEN --- */
+
+.btn-text:hover .liquid-glass-container,
+.btn-cart:hover .liquid-glass-container,
+.navbar__context-menu-wrapper:hover .liquid-glass-container,
+.navbar__context-menu-wrapper.is-open .liquid-glass-container {
+  opacity: 1;
 }
 
 
-/* Specific Tweak for Cart Button layout */
-.btn-cart {
-  gap: 0.3rem;
-}
+/* ==========================================================================
+   CART ICON & MODAL SPECIFICS
+   ========================================================================== */
 
-/* --- HOVER STATE: REVEAL LIQUID GLASS --- */
-.btn-text:hover, 
-.btn-cart:hover, 
-.navbar__context-menu:hover {
-  
-  /* 1. Lift Effect */
-  transform: translateY(-2px) scale(1.02);
-
-  /* 2. Glass Material (The effect you liked) */
-  background: linear-gradient(
-    135deg, 
-    rgba(255, 255, 255, 0.15) 0%, 
-    rgba(255, 255, 255, 0.05) 100%
-  );
-  
-  
-  /* 4. Surface Tension (Borders appear) */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  
-  /* 5. Depth & Glow */
-  box-shadow: 
-    0 4px 10px rgba(0, 0, 0, 0.05), 
-    inset 0 0 10px rgba(255, 255, 255, 0.1); 
-}
-
-/* Active/Click State */
-.btn-text:active, 
-.btn-cart:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-/* HOVER STATES */
-/* Only apply hover effect to actual buttons, not the context label */
-.btn-text:hover, .btn-cart:hover {
-  transform: translateY(-2px) scale(1.02);
-  
-  background: linear-gradient(
-    135deg, 
-    rgba(255, 255, 255, 0.25) 0%, 
-    rgba(255, 255, 255, 0.1) 100%
-  );
-  
-  border-top-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 
-    0 8px 20px rgba(0, 0, 0, 0.1),
-    inset 0 0 20px rgba(255, 255, 255, 0.2);
-}
-
-/* Active/Click State */
-.btn-text:active, .btn-cart:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-/* --- CART ICON MASK --- */
 .navbar__cart-icon {
   width: 20px; 
   height: 20px;
   display: block;
-  
   background-color: currentColor;
-  
   mask-image: url('/assets/img/logo.png');
   mask-size: contain;
   mask-repeat: no-repeat;
   mask-position: center;
-  
   -webkit-mask-image: url('/assets/img/logo.png');
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
@@ -188,14 +196,78 @@
   top: 1px; 
 }
 
+.navbar__modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1; 
+  cursor: default;
+}
+
+.navbar__context-menu {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 20px;
+  height: 35px; 
+  line-height: 1;
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: inherit; 
+}
+
+.navbar__modal-dropdown {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0.5rem;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+  animation: expandDropdown 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.navbar__modal-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 10px 20px;
+  line-height: 1;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar__modal-btn:hover {
+  background: rgba(255, 255, 255, 0.15); 
+  padding-left: 24px; 
+}
+
+@keyframes expandDropdown {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 200px; }
+}
+
 @media (max-width: 768px) {
-  .navbar {
-    padding: 0 1rem;
+  .navbar { padding: 0 1rem; }
+  
+  .btn-text, .btn-cart, .navbar__context-menu, .navbar__modal-btn {
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 0.75rem;
   }
   
-  /* On mobile, maybe scale down the glass elements */
-  .btn-text, .btn-cart, .navbar__context-menu {
-    padding: 8px 16px;
-    font-size: 0.8rem;
+  .navbar__modal-btn:hover {
+    padding-left: 20px; 
   }
 }

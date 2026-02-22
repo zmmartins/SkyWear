@@ -1,9 +1,53 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./Navbar.css";
 
+// Helper component that injects the 3 glass layers exactly like your HTML example
+const LiquidGlassLayers = () => (
+    <div className="liquid-glass-container" aria-hidden="true">
+        <div className="liquid-glass__bend"></div>
+        <div className="liquid-glass__face"></div>
+        <div className="liquid-glass__edge"></div>
+    </div>
+);
+
 export default function Navbar() {
     const navbarRef = useRef(null);
     const [currentSection, setCurrentSection] = useState("INTRO");
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const sections = [
+        { id: "INTRO", label: "Intro", selector: ".landing-intro" },
+        { id: "HERO", label: "Hero", selector: ".hero" },
+        { id: "ITEMS", label: "Items", selector: ".individual-items" }
+    ];
+
+    const scrollToSection = (sec) => {
+        if (sec.id === "INTRO" || sec.id === "HERO") {
+            const revealTrack = document.querySelector('.scroll-reveal');
+            
+            if (revealTrack) {
+                const rect = revealTrack.getBoundingClientRect();
+                const absoluteTop = window.scrollY + rect.top;
+                
+                if (sec.id === "INTRO") {
+                    window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
+                } else if (sec.id === "HERO") {
+                    const viewportHeight = window.innerHeight;
+                    const targetY = absoluteTop + rect.height - viewportHeight;
+                    window.scrollTo({ top: targetY, behavior: 'smooth' });
+                }
+                
+                setIsMenuOpen(false);
+                return;
+            }
+        }
+
+        const element = document.querySelector(sec.selector);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        setIsMenuOpen(false);
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -24,11 +68,6 @@ export default function Navbar() {
             };
 
             const pref = getNavTextSetting(centerX, navbarCenterY);
-            
-            // NOTE: You mentioned you inverted the attributes in your HTML,
-            // so we keep the logic simple here:
-            // if pref is 'dark' -> set color to dark (#111827)
-            // if pref is 'light' -> set color to light (#f9fafb)
 
             let finalColor = "#f9fafb"; 
 
@@ -40,7 +79,6 @@ export default function Navbar() {
 
             document.documentElement.style.setProperty('--navbar-text-color', finalColor);
 
-            // --- SECTION NAME DETECTION ---
             const centerY = window.innerHeight / 2;
             const centerElements = document.elementsFromPoint(centerX, centerY);
             
@@ -90,12 +128,44 @@ export default function Navbar() {
     return(
         <header className="navbar" ref={navbarRef}>
             
+            {/* NEW: Dedicated background layer to prevent "Backdrop Root" bugs */}
+            <div className="navbar__bg"></div>
+            
             {/* LEFT COLUMN */}
             <div className="navbar__col navbar__col--left">
-                <span className="navbar__context-menu mono">
-                    <span>/</span>
-                    {currentSection}
-                </span>
+                {isMenuOpen && (
+                    <div 
+                        className="navbar__modal-overlay" 
+                        onClick={() => setIsMenuOpen(false)}
+                    />
+                )}
+
+                <div className={`navbar__context-menu-wrapper ${isMenuOpen ? 'is-open' : ''}`}>
+                    <LiquidGlassLayers />
+                    
+                    <span 
+                        className="navbar__context-menu mono"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
+                        <span className="btn-content">/&nbsp;{currentSection}</span>
+                    </span>
+
+                    {isMenuOpen && (
+                        <div className="navbar__modal-dropdown">
+                            {sections
+                                .filter(sec => sec.id !== currentSection) 
+                                .map(sec => (
+                                    <button 
+                                        key={sec.id} 
+                                        className="navbar__modal-btn mono"
+                                        onClick={() => scrollToSection(sec)}
+                                    >
+                                        <span className="btn-content">{sec.label}</span>
+                                    </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* CENTER COLUMN */}
@@ -106,16 +176,47 @@ export default function Navbar() {
             {/* RIGHT COLUMN */}
             <div className="navbar__col navbar__col--right">
                 <div className="navbar__actions">
-                    {/* Simplified Text Button */}
-                    <button className="btn-text">Sign in</button>
+                    <button className="btn-text">
+                        <LiquidGlassLayers />
+                        <span className="btn-content">Sign in</span>
+                    </button>
                     
-                    {/* Cart with Logo Icon + Count */}
                     <button className="btn-cart" aria-label="Cart">
-                        <span className="navbar__cart-count mono">0</span>
-                        <div className="navbar__cart-icon"></div>
+                        <LiquidGlassLayers />
+                        <div className="btn-content" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <span className="navbar__cart-count mono">0</span>
+                            <div className="navbar__cart-icon"></div>
+                        </div>
                     </button>
                 </div>
             </div>
+
+            {/* --- SVG FILTER FOR LIQUID GLASS EFFECT --- */}
+            {/* Changed from 'display: none' to zero-dimensions to ensure filters render in all browsers */}
+            <svg style={{ position: "absolute", width: 0, height: 0, pointerEvents: "none" }} aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <filter
+                    id="glass-blur"
+                    x="0"
+                    y="0"
+                    width="100%"
+                    height="100%"
+                    filterUnits="objectBoundingBox"
+                >
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.003 0.007"
+                        numOctaves="1"
+                        result="turbulence"
+                    />
+                    <feDisplacementMap
+                        in="SourceGraphic"
+                        in2="turbulence"
+                        scale="200"
+                        xChannelSelector="R"
+                        yChannelSelector="G"
+                    />
+                </filter>
+            </svg>
             
         </header>
     );
