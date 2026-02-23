@@ -2,17 +2,11 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import './ScrollReveal.css';
 import { clamp } from '../../utils/clamp';
 
-/**
- * @param {number} revealStart - (0 to 1) Scroll percentage to trigger EXPAND (Landing -> Hero).
- * @param {number} collapseStart - (0 to 1) Scroll percentage to trigger COLLAPSE (Hero -> Landing).
- * @param {boolean} autoComplete - If true, automatically scrolls to finish the reveal.
- * @param {number} duration - Speed of the auto-complete animation in milliseconds.
- */
 export default function ScrollReveal({ 
     children, 
     className = "", 
-    revealStart = 0,        // Default start point for revealing
-    collapseStart = 0.8,    // NEW: Default trigger point for collapsing back (0.8 = 80% scroll)
+    revealStart = 0,        
+    collapseStart = 0.8,    
     autoComplete = false,
     duration = 700 
 }) {
@@ -72,7 +66,6 @@ export default function ScrollReveal({
 
         containerRef.current.style.setProperty('--scroll-progress', progress);
 
-        // Visual calculation remains based on revealStart to keep the circle sync logic
         let circleProgress = 0;
         if (progress > revealStart) {
             const phaseProgress = (progress - revealStart) / (1 - revealStart);
@@ -130,15 +123,20 @@ export default function ScrollReveal({
             const { progress, rect } = state;
             const direction = progress - prevProgressRef.current;
 
+            // --- THE FIX: BYPASS HIJACK IF NAVBAR TRIGGERED SCROLL ---
+            // If the flag is set, we still update visual progress above, 
+            // but we skip the forced scrolling below.
+            if (document.documentElement.dataset.navScrolling === 'true') {
+                prevProgressRef.current = progress;
+                return;
+            }
+
             // AUTO-COMPLETE TRIGGER
             if (autoComplete && !isLockedRef.current && Math.abs(direction) > 0.0001) {
                 
-                // ZONE LOGIC: We are inside the active transition area
                 if (progress > (revealStart + 0.001) && progress < 0.999) {
                     
                     if (direction > 0) {
-                        // SCROLL DOWN -> Go to End (1.0)
-                        // Trigger immediately if user is pushing forward past revealStart
                         lockUserScroll();
                         
                         const currentScrollY = window.scrollY;
@@ -149,11 +147,6 @@ export default function ScrollReveal({
                         scrollToTarget(targetScrollY);
                     } 
                     else if (direction < 0) {
-                        // SCROLL UP -> Go to Start (0.0)
-                        
-                        // --- CHANGED LOGIC HERE ---
-                        // Only snap back if we have crossed the collapse threshold (e.g. < 0.8)
-                        // If progress is 0.9 and we scroll up, we allow manual control.
                         if (progress < collapseStart) {
                             lockUserScroll();
                             
@@ -180,7 +173,7 @@ export default function ScrollReveal({
             window.removeEventListener('resize', handleScroll);
             unlockUserScroll(); 
         };
-    }, [updateScrollLogic, revealStart, collapseStart, autoComplete, duration]); // Added collapseStart to dependency
+    }, [updateScrollLogic, revealStart, collapseStart, autoComplete, duration]); 
 
     return (
         <div className={`scroll-reveal ${className}`} ref={trackRef}>

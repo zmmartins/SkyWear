@@ -74,14 +74,17 @@
 .navbar__context-menu-wrapper {
   appearance: none;
   cursor: pointer;
-  
-  /* Must be relative to anchor the absolute liquid layers */
   position: relative; 
   z-index: 10;
-  
   border-radius: 24px; 
   background: transparent;
   border: none;
+  
+  /* THE POP/SPRING EFFECT:
+     This bouncy cubic-bezier creates the "bubble popping open" physics 
+     when the button is released from a click or when the dropdown expands.
+  */
+  transition: all 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
 }
 
 .btn-text, 
@@ -89,7 +92,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  padding: 0px 16px;
   height: 37px; 
   line-height: 1;
   font-family: inherit;
@@ -102,33 +105,42 @@
 .navbar__context-menu-wrapper {
   display: inline-flex;
   flex-direction: column;
-  min-width: 120px;
 }
 
-/* Keep text/content ON TOP of the glass layers */
 .btn-content {
   position: relative;
   z-index: 5;
 }
 
 /* ==========================================================================
+   THE SQUISH EFFECT (Click State)
+   ========================================================================== */
+
+/* When the user presses the mouse down, compress the button deeply and quickly.
+  When released, the 0.4s bouncy transition above takes over.
+*/
+.btn-text:active, 
+.btn-cart:active,
+.nacbar__context-menu-wrapper:not(.is-open):active,
+.navbar__context-menu-wrapper:active {
+  transform: scale(0.85); 
+  transition: transform 0.1s ease-out; /* Fast, immediate compression */
+}
+
+/* ==========================================================================
    THE LIQUID GLASS DOM LAYERS
    ========================================================================== */
 
-/* Main container holding the 3 layers */
 .liquid-glass-container {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  z-index: -1; /* Keep behind text */
-  
-  /* Hide by default, reveal on hover */
+  z-index: -1; 
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-/* The 3 layers exactly matched to your specs */
 .liquid-glass__bend,
 .liquid-glass__face,
 .liquid-glass__edge {
@@ -137,15 +149,13 @@
   border-radius: inherit;
 }
 
-/* 1) Distortion + blur layer */
 .liquid-glass__bend {
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   filter: url(#glass-blur);
   z-index: 0;
 }
 
-/* 2) Subtle shadow / face */
 .liquid-glass__face {
   box-shadow:
     0 4px 4px rgba(0, 0, 0, 0.15),
@@ -153,7 +163,6 @@
   z-index: 1;
 }
 
-/* 3) Edge highlights */
 .liquid-glass__edge {
   box-shadow:
     inset 3px 3px 3px rgba(255, 255, 255, 0.45),
@@ -161,15 +170,14 @@
   z-index: 2;
 }
 
-/* --- TRIGGER REVEAL EFFECTS ON HOVER / OPEN --- */
-
-.btn-text:hover .liquid-glass-container,
-.btn-cart:hover .liquid-glass-container,
-.navbar__context-menu-wrapper:hover .liquid-glass-container,
-.navbar__context-menu-wrapper.is-open .liquid-glass-container {
+/* Reveal liquid layers */
+.btn-text:hover > .liquid-glass-container,
+.btn-cart:hover > .liquid-glass-container,
+.navbar__context-menu-wrapper:hover > .liquid-glass-container,
+.navbar__context-menu-wrapper.is-open > .liquid-glass-container,
+.navbar__modal-btn:hover > .liquid-glass-container {
   opacity: 1;
 }
-
 
 /* ==========================================================================
    CART ICON & MODAL SPECIFICS
@@ -212,8 +220,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 20px;
-  height: 35px; 
+  padding: 0 16px;
+  
+  /* FIXED: Height strictly forced to match the 37px buttons */
+  height: 37px; 
   line-height: 1;
   font-family: inherit;
   font-size: 0.8rem;
@@ -222,21 +232,54 @@
   color: inherit; 
 }
 
+/* ==========================================================================
+   DROPDOWN MENU (Bubble Pop Elastic Transition)
+   ========================================================================== */
+
 .navbar__modal-dropdown {
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 0.5rem;
-  overflow: hidden;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
   position: relative;
   z-index: 5;
-  animation: expandDropdown 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  overflow: hidden;
+  
+  /* Syncs the height expansion with the physical bouncy pop of the wrapper */
+  transition: grid-template-rows 0.4s cubic-bezier(0.5, 1.5, 0.4, 1),
+              opacity 0.3s ease;
+}
+
+.navbar__context-menu-wrapper.is-open .navbar__modal-dropdown {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.navbar__modal-dropdown-inner {
+  min-height: 0; 
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-bottom: 0;
+  transition: padding-bottom 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
+}
+
+.navbar__context-menu-wrapper.is-open .navbar__modal-dropdown-inner{
+  padding-bottom: 0.5rem;
 }
 
 .navbar__modal-btn {
   appearance: none;
   background: transparent;
   border: none;
-  padding: 10px 20px;
+
+  padding: 0px 16px;
+  height: 37px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+
   line-height: 1;
   text-align: left;
   font-family: inherit;
@@ -245,17 +288,12 @@
   white-space: nowrap;
   color: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
 
-.navbar__modal-btn:hover {
-  background: rgba(255, 255, 255, 0.15); 
-  padding-left: 24px; 
-}
-
-@keyframes expandDropdown {
-  from { opacity: 0; max-height: 0; }
-  to { opacity: 1; max-height: 200px; }
+  position: relative;
+  z-index: 10;
+  border-radius: 24px;
+  
+  transition: all 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
 }
 
 @media (max-width: 768px) {
@@ -265,9 +303,5 @@
     padding-left: 16px;
     padding-right: 16px;
     font-size: 0.75rem;
-  }
-  
-  .navbar__modal-btn:hover {
-    padding-left: 20px; 
   }
 }

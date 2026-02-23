@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./Navbar.css";
 
-// Helper component that injects the 3 glass layers exactly like your HTML example
 const LiquidGlassLayers = () => (
     <div className="liquid-glass-container" aria-hidden="true">
         <div className="liquid-glass__bend"></div>
@@ -22,6 +21,19 @@ export default function Navbar() {
     ];
 
     const scrollToSection = (sec) => {
+        // --- 1. SET "DO NOT DISTURB" FLAG FOR SCROLL REVEAL ---
+        document.documentElement.dataset.navScrolling = 'true';
+        
+        if (window.navScrollTimeout) {
+            clearTimeout(window.navScrollTimeout);
+        }
+        
+        // Remove the flag after the smooth scroll is expected to finish
+        window.navScrollTimeout = setTimeout(() => {
+            document.documentElement.dataset.navScrolling = 'false';
+        }, 1200); 
+
+        // --- 2. EXECUTE SCROLL ---
         if (sec.id === "INTRO" || sec.id === "HERO") {
             const revealTrack = document.querySelector('.scroll-reveal');
             
@@ -128,7 +140,6 @@ export default function Navbar() {
     return(
         <header className="navbar" ref={navbarRef}>
             
-            {/* NEW: Dedicated background layer to prevent "Backdrop Root" bugs */}
             <div className="navbar__bg"></div>
             
             {/* LEFT COLUMN */}
@@ -150,8 +161,8 @@ export default function Navbar() {
                         <span className="btn-content">/&nbsp;{currentSection}</span>
                     </span>
 
-                    {isMenuOpen && (
-                        <div className="navbar__modal-dropdown">
+                    <div className="navbar__modal-dropdown">
+                        <div className="navbar__modal-dropdown-inner">
                             {sections
                                 .filter(sec => sec.id !== currentSection) 
                                 .map(sec => (
@@ -159,12 +170,14 @@ export default function Navbar() {
                                         key={sec.id} 
                                         className="navbar__modal-btn mono"
                                         onClick={() => scrollToSection(sec)}
+                                        tabIndex={isMenuOpen ? 0 : -1} 
                                     >
+                                        <LiquidGlassLayers/>
                                         <span className="btn-content">{sec.label}</span>
                                     </button>
                             ))}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
@@ -192,7 +205,6 @@ export default function Navbar() {
             </div>
 
             {/* --- SVG FILTER FOR LIQUID GLASS EFFECT --- */}
-            {/* Changed from 'display: none' to zero-dimensions to ensure filters render in all browsers */}
             <svg style={{ position: "absolute", width: 0, height: 0, pointerEvents: "none" }} aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
                 <filter
                     id="glass-blur"
