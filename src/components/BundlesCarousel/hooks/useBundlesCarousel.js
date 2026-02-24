@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clamp } from "../../../utils/clamp";
 
 /**
- * HOOK: useHeroCarousel
+ * HOOK: useBundlesCarousel
  * ------------------------------------------------------------------
- * Manages the state machine for the Hero Carousel.
+ * Manages the state machine for the Bundles Carousel.
  * Handles: Sliding logic, Dot "rotation" logic, Autoplay, and Swipe.
  * * @param {Object} config
  * @param {number} config.slidesLength - Total count of slides
@@ -12,7 +12,7 @@ import { clamp } from "../../../utils/clamp";
  * @param {number} config.autoplayMs - Delay between auto-slides (default: 6000)
  * @param {number} config.swipeThreshold - Pixels required to trigger swipe (default: 50)
  */
-export default function useHeroCarousel({
+export default function useBundlesCarousel({
     slidesLength = 0,
     slides = [],
     autoplayMs = 6000,

@@ -6,7 +6,7 @@ import React, { memo } from "react";
  * Calculates attributes to prioritize the "Hero" image (LCP) 
  * while lazy-loading secondary images to save bandwidth.
  * * @param {Object} img - The image data object
- * @param {boolean} isActive - Is this slide currently visible?
+ * * @param {boolean} isActive - Is this slide currently visible?
  */
 const getImgAttributes = (img, isActive) => {
     // We only eager load if the slide is active AND the image is marked important in data
@@ -23,16 +23,16 @@ const getImgAttributes = (img, isActive) => {
 };
 
 /**
- * COMPONENT: HeroSlide
+ * COMPONENT: BundleSlide
  * ------------------------------------
  * Represents a single slide in the carousel.
  * Handles the "Liquid Glass" orb visuals and the "Exploding" clothing stack.
  * * @param {Object} slide - Data for text, theme, and images
- * @param {string} className - CSS classes (managed by parent for animations)
- * @param {Array} orbSizes - Array of percentages for the background decorative orbs
- * @param {boolean} isActive - Toggles accessibility and interaction
+ * * @param {string} className - CSS classes (managed by parent for animations)
+ * * @param {Array} orbSizes - Array of percentages for the background decorative orbs
+ * * @param {boolean} isActive - Toggles accessibility and interaction
  */
-const HeroSlide = ({ 
+const BundleSlide = ({ 
     slide = {}, 
     className = "", 
     orbSizes = [], 
@@ -118,4 +118,4 @@ const HeroSlide = ({
 };
 
 // 4. Optimization: Memoize to prevent re-renders of off-screen slides
-export default memo(HeroSlide);
+export default memo(BundleSlide);

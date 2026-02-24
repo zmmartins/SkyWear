@@ -1,5 +1,5 @@
 /**
- * MOCK DATA: Hero Slides
+ * MOCK DATA: Bundle Slides
  * ------------------------------------------------------------------
  * This mimics the JSON response we expect from the backend.
  * * SCHEMA NOTE:

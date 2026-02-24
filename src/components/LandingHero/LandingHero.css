@@ -1,8 +1,8 @@
 /* ==========================================================================
-   LANDING INTRO SECTION (FIXED NAVBAR COVERAGE)
+   LANDING HERO SECTION (FIXED NAVBAR COVERAGE)
    ========================================================================== */
 
-.landing-intro {
+.landing-hero {
     position: relative;
     width: 100%;
     height: 100vh; 
@@ -16,7 +16,7 @@
 }
 
 /* --- NEW: NAVBAR SHIELD --- */
-.landing-intro__navbar-shield {
+.landing-hero__navbar-shield {
     position: absolute;
     top: 0;
     left: 0;
@@ -36,7 +36,7 @@
 }
 
 /* --- THE ACCENT CIRCLE --- */
-.landing-intro__accent-circle {
+.landing-hero__accent-circle {
     position: absolute;
     top: calc(50% + calc(var(--navbar-height) / 2));
     left: 50%;
@@ -58,7 +58,7 @@
 }
 
 /* --- LAYER 1: The Infinite Dot Pattern --- */
-.landing-intro__dots-layer {
+.landing-hero__dots-layer {
     position: absolute;
     z-index: 2;
     top: var(--navbar-height);
@@ -71,7 +71,7 @@
     pointer-events: none;
 }
 
-.landing-intro__dots-layer--white {
+.landing-hero__dots-layer--white {
     background-image: radial-gradient(#ffffff 2px, transparent 2px);
     z-index: 3; 
     
@@ -84,7 +84,7 @@
 }
 
 /* --- LAYER 2: The SVG Stencil (White Overlay) --- */
-.landing-intro__stencil {
+.landing-hero__stencil {
     position: absolute;
     z-index: 4; 
     top: var(--navbar-height);
@@ -96,14 +96,14 @@
     pointer-events: none;
 }
 
-.landing-intro__stencil text {
+.landing-hero__stencil text {
     font-family: var(--font-sans); 
     text-transform: uppercase;
     letter-spacing: -0.05em; 
 }
 
 /* --- LAYER 3: The Foreground Content --- */
-.landing-intro__content {
+.landing-hero__content {
     position: relative;
     z-index: 10; 
     width: 100%;
@@ -117,7 +117,7 @@
     overflow: hidden;
 }
 
-.landing-intro__line {
+.landing-hero__line {
     font-family: var(--font-sans);
     font-weight: 800; 
     font-size: clamp(3rem, 9vw, 9rem); 
@@ -129,13 +129,13 @@
     will-change: transform;
 }
 
-.landing-intro__line span{
+.landing-hero__line span{
     display: block;
     opacity: 0;
     animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.landing-intro__line--top {
+.landing-hero__line--top {
     text-align: left;
     max-width: 12ch;
     animation-delay: 0.1s;
@@ -143,9 +143,9 @@
     transform: translateX(calc(var(--scroll-progress, 0) * -120vw));
 }
 
-.landing-intro__line--top span{ animation-delay: 0.1s; }
+.landing-hero__line--top span{ animation-delay: 0.1s; }
 
-.landing-intro__line--bottom {
+.landing-hero__line--bottom {
     text-align: right;
     align-self: flex-end;
     max-width: 14ch;
@@ -154,7 +154,7 @@
     transform: translateX(calc(var(--scroll-progress, 0) * 160vw));
 }
 
-.landing-intro__line--bottom span { animation-delay: 0.3s; }
+.landing-hero__line--bottom span { animation-delay: 0.3s; }
 
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(40px); }
@@ -162,7 +162,7 @@
 }
 
 @media (max-width: 768px) {
-    .landing-intro__content {
+    .landing-hero__content {
         padding-top: calc(var(--navbar-height) + 3rem);
         padding-left: 1.5rem;
         padding-right: 1.5rem;

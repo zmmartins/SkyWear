@@ -2,7 +2,7 @@
    PRODUCT GRID SECTION
    ========================================================================== */
 
-.items-grid {
+.item-grid {
     position: relative;
     z-index: 20; 
     background-color: #ffffff; 
@@ -11,7 +11,7 @@
     min-height: 50vh; 
 }
 
-.items-grid__container {
+.item-grid__container {
     max-width: var(--max-width-content, 1400px);
     margin: 0 auto;
     display: flex;
@@ -20,7 +20,7 @@
 }
 
 /* --- FILTER HEADER --- */
-.items-grid__header-row {
+.item-grid__header-row {
     display: flex;
     flex-direction: column; 
     align-items: center; 
@@ -30,7 +30,7 @@
 }
 
 /* BIG ACTIVE TITLE */
-.items-grid__title-active {
+.item-grid__title-active {
     font-size: clamp(5rem, 18vw, 18vw); 
     font-weight: 900;
     text-transform: uppercase;
@@ -47,7 +47,7 @@
 }
 
 /* FILTER NAVIGATION */
-.items-grid__filter-nav {
+.item-grid__filter-nav {
     display: flex;
     flex-wrap: nowrap; 
     gap: 1rem;       
@@ -58,7 +58,7 @@
     z-index: 2;
 }
 
-.items-grid__filter-btn {
+.item-grid__filter-btn {
     background: none;
     border: none;
     padding: 0;
@@ -76,18 +76,18 @@
     will-change: transform;
 }
 
-.items-grid__filter-btn:hover {
+.item-grid__filter-btn:hover {
     color: #111827; 
 }
 
 /* GRID LAYOUT */
-.items-grid__grid {
+.item-grid__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 4rem 2rem; 
 }
 
-.items-grid__card {
+.item-grid__card {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
@@ -97,7 +97,7 @@
     z-index: 1;
 }
 
-.items-grid__card:hover .items-grid__image {
+.item-grid__card:hover .item-grid__image {
     transform: scale(1.05);
 }
 
@@ -106,7 +106,7 @@
    ========================================================================== 
 */
 
-.items-grid__image-wrapper {
+.item-grid__image-wrapper {
     width: 100%;
     aspect-ratio: 3 / 4; 
     overflow: hidden;
@@ -119,7 +119,7 @@
 
 /* LAYER 1: BLURRED BACKGROUND (::before) */
 /* Sits at the bottom */
-.items-grid__image-wrapper::before {
+.item-grid__image-wrapper::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -137,7 +137,7 @@
 
 /* LAYER 2: FADING BORDERS MASK (::after) */
 /* Sits ON TOP of background, but BELOW the product */
-.items-grid__image-wrapper::after {
+.item-grid__image-wrapper::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -156,13 +156,13 @@
 
 /* HOVER STATE: HIDE MASK */
 /* When hovering the card, hide the white shadow to reveal rigid edges */
-.items-grid__card:hover .items-grid__image-wrapper::after {
+.item-grid__card:hover .item-grid__image-wrapper::after {
     opacity: 0;
 }
 
 /* LAYER 3: PRODUCT IMAGE */
 /* Sits on TOP of everything */
-.items-grid__image {
+.item-grid__image {
     width: 100%;
     height: 100%;
     
@@ -177,19 +177,19 @@
     filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15)); /* Pops the item off the background */
 }
 
-.items-grid__card:hover .items-grid__image {
+.item-grid__card:hover .item-grid__image {
     transform: scale(1.05);
 }
 /* ========================================================================== */
 
 
-.items-grid__details {
+.item-grid__details {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
 }
 
-.items-grid__name {
+.item-grid__name {
     font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -198,14 +198,14 @@
     letter-spacing: -0.02em;
 }
 
-.items-grid__price {
+.item-grid__price {
     font-size: 1rem;
     color: #4b5563; 
     margin: 0;
     font-variant-numeric: tabular-nums; 
 }
 
-.items-grid__empty {
+.item-grid__empty {
     text-align: center;
     color: #6b7280;
     font-size: 1.2rem;
@@ -214,12 +214,12 @@
 
 /* MOBILE ADJUSTMENT */
 @media (max-width: 768px) {
-    .items-grid__title-active {
+    .item-grid__title-active {
         font-size: 18vw; 
         transform: none !important; 
     }
 
-    .items-grid__filter-nav {
+    .item-grid__filter-nav {
         overflow-x: auto; 
         justify-content: flex-start; 
         padding-bottom: 10px; 
@@ -227,11 +227,11 @@
         scrollbar-width: none; 
         -ms-overflow-style: none;
     }
-    .items-grid__filter-nav::-webkit-scrollbar {
+    .item-grid__filter-nav::-webkit-scrollbar {
         display: none;
     }
     
-    .items-grid__grid {
+    .item-grid__grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 3rem 1rem;
     }

@@ -1,20 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
-import "./Hero.css";
+import "./BundlesCarousel.css";
 
 // Components & Hooks
-import HeroSlide from "./HeroSlide";
-import useHeroCarousel from "./hooks/useHeroCarousel";
+import BundleSlide from "./BundleSlide";
+import useBundlesCarousel from "./hooks/useBundlesCarousel";
 import useResponsiveOrbs from "./hooks/useResponsiveOrbs";
-import { getHeroSlides } from "./data/getHeroSlides";
+import { getBundleSlides } from "./data/getBundleSlides";
 import { getPrefetchUrlsForSlide, prefetchImages } from "../../utils/prefetch";
 
 /**
- * COMPONENT: Hero
+ * COMPONENT: BundlesCarousel
  * ------------------------------------------------------------------
- * The main container for the homepage hero section.
+ * The carousel for bundles showcase
  * Orchestrates data fetching, state management, animations, and prefetching.
  */
-export default function Hero() {
+export default function BundlesCarousel() {
     // 1. Local State (Data & UI Status)
     const [slides, setSlides] = useState([]);
     const [status, setStatus] = useState("loading"); // 'loading' | 'error' | 'ready'
@@ -27,7 +27,7 @@ export default function Hero() {
     });
 
     // Handle carousel logic (timers, swipe, state)
-    const carousel = useHeroCarousel({
+    const carousel = useBundlesCarousel({
         slidesLength: slides.length,
         slides, // Passed for automatic theme extraction
         autoplayMs: 6000,
@@ -42,7 +42,7 @@ export default function Hero() {
             try {
                 if (slides.length === 0) setStatus("loading");
                 
-                const data = await getHeroSlides();
+                const data = await getBundleSlides();
                 
                 if (isMounted) {
                     setSlides(Array.isArray(data) ? data : []);
@@ -50,7 +50,7 @@ export default function Hero() {
                 }
             } catch (e) {
                 if (isMounted) {
-                    console.error("Hero Data Error:", e);
+                    console.error("Bundles Data Error:", e);
                     setErrorMsg("Unable to load latest collections.");
                     setStatus("error");
                 }
@@ -104,7 +104,7 @@ export default function Hero() {
     if (status === "loading") {
         return (
             <section 
-                className="hero-carousel" 
+                className="bundles-carousel" 
                 data-theme="winter" 
                 aria-busy="true"
                 aria-label="Loading content"
@@ -115,7 +115,7 @@ export default function Hero() {
     // B. Error State
     if (status === "error") {
         return (
-            <section className="hero-carousel" data-theme="winter">
+            <section className="bundles-carousel" data-theme="winter">
                 <div className="carousel__layout">
                     <div className="carousel__info" style={{ zIndex: 10 }}>
                         <h2 className="carousel__title" style={{ fontSize: "2rem" }}>
@@ -140,7 +140,7 @@ export default function Hero() {
 
     return (
         <section 
-            className="hero-carousel" 
+            className="bundles-carousel" 
             data-theme={carousel.activeTheme}
             data-nav-text="light"
             role="region"
@@ -153,7 +153,7 @@ export default function Hero() {
                 {/* 1. SLIDES TRACK */}
                 <div className="carousel__track">
                     {slides.map((slide, index) => (
-                        <HeroSlide
+                        <BundleSlide
                             key={slide.id || index}
                             slide={slide}
                             // INTEGRATION: Uses the hook's class generator

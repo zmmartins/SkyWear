@@ -1,5 +1,5 @@
 /* ==========================================================================
-   HERO COMPONENT STYLES
+   BUNDLES CAROUSEL COMPONENT STYLES
    Structure:
    1. Config & Layers
    2. Main Layout (Container, Track)
@@ -13,14 +13,14 @@
 
 /* 1. CONFIGURATION & LAYERS
    -------------------------------------------------------------------------- */
-.hero-carousel {
+.bundles-carousel {
     /* Animation Timing */
     --slide-transition-ms: 800ms;
     --orb-hover-ease: cubic-bezier(0.25, 0.8, 0.4, 1);
     
     /* Theme Colors (Default: Winter) */
-    --hero-dot-color: #6a94d4;
-    --hero-dot-glow: rgba(106, 148, 212, 0.35);
+    --bc-dot-color: #6a94d4;
+    --bc-dot-glow: rgba(106, 148, 212, 0.35);
 
     /* Layer Map (Z-Index Reference)
        0  : Base Context
@@ -34,19 +34,19 @@
 }
 
 /* Theme Overrides */
-.hero-carousel[data-theme="winter"] {
-    --hero-dot-color: #6a94d4;
-    --hero-dot-glow: rgba(106, 148, 212, 0.35);
+.bundles-carousel[data-theme="winter"] {
+    --bc-dot-color: #6a94d4;
+    --bc-dot-glow: rgba(106, 148, 212, 0.35);
 }
 
-.hero-carousel[data-theme="summer"] {
-    --hero-dot-color: #ff8e4f;
-    --hero-dot-glow: rgba(255, 142, 79, 0.35);
+.bundles-carousel-carousel[data-theme="summer"] {
+    --bc-dot-color: #ff8e4f;
+    --bc-dot-glow: rgba(255, 142, 79, 0.35);
 }
 
 /* 2. MAIN LAYOUT
    -------------------------------------------------------------------------- */
-.hero-carousel {
+.bundles-carousel {
     position: relative;
     width: 100%;
     height: 100vh;
@@ -56,8 +56,8 @@
     background: transparent;
 }
 
-.hero-carousel:focus { outline: none; }
-.hero-carousel:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.35); }
+.bundles-carousel:focus { outline: none; }
+.bundles-carousel:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.35); }
 
 .carousel {
     position: relative;
@@ -480,9 +480,9 @@
     opacity: 1;
     z-index: 10;
     
-    background: var(--hero-dot-color);
+    background: var(--bc-dot-color);
     border-color: rgba(209, 213, 219, 0.85);
-    box-shadow: 0 0 12px var(--hero-dot-glow);
+    box-shadow: 0 0 12px var(--bc-dot-glow);
 }
 
 /* 8. ANIMATIONS
@@ -551,7 +551,7 @@
 /* 9. ACCESSIBILITY
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-    .hero-carousel * {
+    .bundles-carousel * {
         animation: none !important;
         transition: none !important;
         scroll-behavior: auto !important;

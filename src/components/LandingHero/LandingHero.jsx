@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import "./LandingIntro.css";
+import "./LandingHero.css";
 
-export default function LandingIntro() {
+export default function LandingHero() {
     return (
         <section 
-            className="landing-intro"
+            className="landing-hero"
             data-nav-text="dark"
         >
             
@@ -13,14 +13,14 @@ export default function LandingIntro() {
                 This prevents the expanding orange circle/dots from showing up 
                 behind the translucent navigation. 
             */}
-            <div className="landing-intro__navbar-shield" aria-hidden="true" />
+            <div className="landing-hero__navbar-shield" aria-hidden="true" />
 
             {/* LAYER 1: The standard orange dots (background) */}
-            <div className="landing-intro__dots-layer" aria-hidden="true" />
+            <div className="landing-hero__dots-layer" aria-hidden="true" />
 
             {/* LAYER 4: The Stencil (White sheet with Text Cutout) */}
             <svg 
-                className="landing-intro__stencil" 
+                className="landing-hero__stencil" 
                 viewBox="0 0 100 13" 
                 preserveAspectRatio="none" 
                 aria-hidden="true"
@@ -55,18 +55,18 @@ export default function LandingIntro() {
             </svg>
 
             {/* LAYER 3: The actual solid accent circle */}
-            <div className="landing-intro__accent-circle" aria-hidden="true"/>
+            <div className="landing-hero__accent-circle" aria-hidden="true"/>
 
             {/* LAYER 2: The white dots (only visible inside the circle) */}
-            <div className="landing-intro__dots-layer landing-intro__dots-layer--white" aria-hidden="true" />
+            <div className="landing-hero__dots-layer landing-hero__dots-layer--white" aria-hidden="true" />
 
             {/* LAYER 5: The Message */}
-            <div className="landing-intro__content">
-                <h1 className="landing-intro__line landing-intro__line--top">
+            <div className="landing-hero__content">
+                <h1 className="landing-hero__line landing-hero__line--top">
                     <span>YOU PICK <br /> THE LOOK</span>
                 </h1>
                 
-                <h1 className="landing-intro__line landing-intro__line--bottom">
+                <h1 className="landing-hero__line landing-hero__line--bottom">
                     <span>WE'LL HAVE IT <br /> WAITING</span>
                 </h1>
             </div>

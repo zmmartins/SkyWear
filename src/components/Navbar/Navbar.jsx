@@ -15,9 +15,9 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const sections = [
-        { id: "INTRO", label: "Intro", selector: ".landing-intro" },
-        { id: "HERO", label: "Hero", selector: ".hero" },
-        { id: "ITEMS", label: "Items", selector: ".individual-items" }
+        { id: "INTRO", label: "Intro", selector: ".landing-hero" },
+        { id: "BUNDLES", label: "Bundles", selector: ".bundles-carousel" },
+        { id: "ITEMS", label: "Items", selector: ".items-banner" }
     ];
 
     const scrollToSection = (sec) => {
@@ -34,7 +34,7 @@ export default function Navbar() {
         }, 1200); 
 
         // --- 2. EXECUTE SCROLL ---
-        if (sec.id === "INTRO" || sec.id === "HERO") {
+        if (sec.id === "INTRO" || sec.id === "BUNDLES") {
             const revealTrack = document.querySelector('.scroll-reveal');
             
             if (revealTrack) {
@@ -43,7 +43,7 @@ export default function Navbar() {
                 
                 if (sec.id === "INTRO") {
                     window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
-                } else if (sec.id === "HERO") {
+                } else if (sec.id === "BUNDLES") {
                     const viewportHeight = window.innerHeight;
                     const targetY = absoluteTop + rect.height - viewportHeight;
                     window.scrollTo({ top: targetY, behavior: 'smooth' });
@@ -97,16 +97,16 @@ export default function Navbar() {
             let foundSection = "INTRO";
 
             for (const el of centerElements) {
-                if (el.classList.contains('landing-intro') || el.closest('.landing-intro')) {
+                if (el.classList.contains('landing-hero') || el.closest('.landing-hero')) {
                     foundSection = "INTRO";
                     break;
-                } else if (el.classList.contains('hero-carousel') || el.closest('.hero-carousel')) {
-                    foundSection = "HERO";
+                } else if (el.classList.contains('bundles-carousel') || el.closest('.bundles-carousel')) {
+                    foundSection = "BUNDLES";
                     break;
-                } else if (el.classList.contains('individual-items') || el.closest('.individual-items')) {
+                } else if (el.classList.contains('items-banner') || el.closest('.items-banner')) {
                     foundSection = "ITEMS";
                     break;
-                } else if (el.classList.contains('items-grid') || el.closest('.items-grid')) {
+                } else if (el.classList.contains('item-grid') || el.closest('.item-grid')) {
                     foundSection = "ITEMS";
                     break;
                 }

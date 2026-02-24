@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import './IndividualItems.css';
+import './ItemsBanner.css';
 
-export default function IndividualItems() {
+export default function ItemsBanner() {
     const sectionRef = useRef(null);
     const imageRef = useRef(null);
     const titleTopRef = useRef(null);
@@ -101,36 +101,36 @@ export default function IndividualItems() {
     return (
         <section 
             ref={sectionRef} 
-            className="individual-items" 
+            className="items-banner" 
             aria-label="Individual Items Collection"
             data-nav-text="dark"
         >
-            <div className="individual-items__container">
+            <div className="items-banner__container">
                 
                 {/* ROW 1: TOP TITLE */}
                 <h2 
                     ref={titleTopRef} 
-                    className="individual-items__title-top"
+                    className="items-banner__title-top"
                 >
                     BUILD <span ref={highlightTopRef} className="highlight mono">YOUR</span>
                 </h2>
 
                 {/* ROW 2: INFO (Left) + BOTTOM TITLE (Right) */}
-                <div className="individual-items__row-bottom">
+                <div className="items-banner__row-bottom">
                     
                     {/* The Info Block */}
-                    <div className="individual-items__info">
+                    <div className="items-banner__info">
                         
                         {/* ARROW STRUCTURE */}
                         <div 
                             ref={arrowWrapperRef} 
-                            className="individual-items__arrow-wrapper" 
+                            className="items-banner__arrow-wrapper" 
                             aria-hidden="true"
                         >
                             {/* Inner Mask */}
-                            <div ref={arrowMaskRef} className="individual-items__arrow-mask">
+                            <div ref={arrowMaskRef} className="items-banner__arrow-mask">
                                 <svg 
-                                    className="individual-items__arrow" 
+                                    className="items-banner__arrow" 
                                     viewBox="0 0 24 400" 
                                     preserveAspectRatio="none"
                                 >
@@ -142,7 +142,7 @@ export default function IndividualItems() {
                             </div>
                         </div>
 
-                        <p className="individual-items__text mono">
+                        <p className="items-banner__text mono">
                             Not looking for a pre-made bundle? Explore our collection of 
                             individual pieces. Mix, match, and reserve exactly what you 
                             need for your trip.
@@ -152,7 +152,7 @@ export default function IndividualItems() {
                     {/* The Offset Title */}
                     <h2 
                         ref={titleBottomRef}
-                        className="individual-items__title-bottom"
+                        className="items-banner__title-bottom"
                     >
                         <span ref={highlightBottomRef} className="highlight mono">OWN</span> STYLE
                     </h2>
@@ -161,7 +161,7 @@ export default function IndividualItems() {
                 {/* CENTRAL IMAGE FRAME */}
                 <div 
                     ref={imageRef} 
-                    className="individual-items__central-image"
+                    className="items-banner__central-image"
                 >
                     <img 
                         className="image-base"

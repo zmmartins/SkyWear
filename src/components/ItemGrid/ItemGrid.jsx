@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import './IndividualItemsGrid.css';
+import './ItemGrid.css';
 
 // MOCK DATA
 const productsData = [
@@ -52,7 +52,7 @@ const categories = [
     "sweater", "tshirt", "pants", "shorts"
 ];
 
-export default function IndividualItemsGrid() {
+export default function ItemGrid() {
     const [activeCategory, setActiveCategory] = useState("all items");
 
     // REFS
@@ -203,30 +203,30 @@ export default function IndividualItemsGrid() {
     return (
         <section 
             ref={sectionRef}
-            className="items-grid" 
+            className="item-grid" 
             aria-label="Product Grid"
             data-nav-text="dark"
         >
-            <div className="items-grid__container">
+            <div className="item-grid__container">
                 
-                <header className="items-grid__header-row">
+                <header className="item-grid__header-row">
                     
                     {/* ACTIVE TITLE */}
                     <h2 
                         ref={titleRef}
-                        className="items-grid__title-active"
+                        className="item-grid__title-active"
                         data-category={activeCategory} 
                     >
                         {activeCategory}
                     </h2>
 
                     {/* OPTIONS NAV */}
-                    <nav className="items-grid__filter-nav mono">
+                    <nav className="item-grid__filter-nav mono">
                         {otherCategories.map((cat) => (
                             <button 
                                 key={cat}
                                 ref={(el) => optionsRef.current.set(cat, el)}
-                                className="items-grid__filter-btn"
+                                className="item-grid__filter-btn"
                                 onClick={() => handleCategoryChange(cat)}
                                 aria-label={`Filter by ${cat}`}
                                 data-category={cat}
@@ -238,22 +238,22 @@ export default function IndividualItemsGrid() {
 
                 </header>
 
-                <div className="items-grid__grid">
+                <div className="item-grid__grid">
                     {filteredProducts.map((product) => (
-                        <article key={product.id} className="items-grid__card">
-                            <div className="items-grid__image-wrapper">
+                        <article key={product.id} className="item-grid__card">
+                            <div className="item-grid__image-wrapper">
                                 <img 
                                     src={product.mainImage} 
                                     alt={product.name} 
-                                    className="items-grid__image"
+                                    className="item-grid__image"
                                     loading="lazy"
                                 />
                             </div>
-                            <div className="items-grid__details">
-                                <div className="items-grid__header-details">
-                                    <h3 className="items-grid__name">{product.name}</h3>
+                            <div className="item-grid__details">
+                                <div className="item-grid__header-details">
+                                    <h3 className="item-grid__name">{product.name}</h3>
                                 </div>
-                                <p className="items-grid__price mono">
+                                <p className="item-grid__price mono">
                                     ${product.price.toFixed(2)}
                                 </p>
                             </div>
@@ -262,7 +262,7 @@ export default function IndividualItemsGrid() {
                 </div>
 
                 {filteredProducts.length === 0 && (
-                    <p className="items-grid__empty">No items found in this category.</p>
+                    <p className="item-grid__empty">No items found in this category.</p>
                 )}
 
             </div>

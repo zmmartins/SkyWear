@@ -1,8 +1,8 @@
 /* ==========================================================================
-   INDIVIDUAL ITEMS SECTION
+   INDIVIDUAL ITEMS SECTION BANNER
    ========================================================================== */
 
-.individual-items {
+.items-banner {
     position: relative;
     z-index: 10;
     width: 100%;
@@ -16,7 +16,7 @@
     overflow: hidden; 
 }
 
-.individual-items__container {
+.items-banner__container {
     width: 100%;
     max-width: var(--max-width-content, 1400px);
     margin: 0 auto;
@@ -36,8 +36,8 @@
 
 /* 1. TYPOGRAPHY
    -------------------------------------------------------------------------- */
-.individual-items__title-top,
-.individual-items__title-bottom {
+.items-banner__title-top,
+.items-banner__title-bottom {
     font-size: clamp(3rem, 11vw, 11vw);
     font-weight: 800;
     line-height: 0.85;
@@ -59,7 +59,7 @@
     will-change: color;
 }
 
-.individual-items__title-top {
+.items-banner__title-top {
     width: 100%;
     display: block;
     
@@ -71,7 +71,7 @@
 }
 
 /* Bottom Row: Flex Container */
-.individual-items__row-bottom {
+.items-banner__row-bottom {
     display: flex;
     align-items: flex-end; 
     justify-content: space-between; 
@@ -82,7 +82,7 @@
     z-index: 2;
 }
 
-.individual-items__title-bottom {
+.items-banner__title-bottom {
     /* 
         change y translate to 0 for second row to go to bottom 
         keep at -290px for it to be right below top row
@@ -92,7 +92,7 @@
 
 /* 2. TEXT & ARROW BLOCK
    -------------------------------------------------------------------------- */
-.individual-items__info {
+.items-banner__info {
     display: flex;
     align-items: flex-start;
     gap: 1.5rem;
@@ -104,7 +104,7 @@
 }
 
 /* ARROW WRAPPER */
-.individual-items__arrow-wrapper {
+.items-banner__arrow-wrapper {
     height: 400px; 
     width: 24px;
     flex-shrink: 0;
@@ -112,7 +112,7 @@
 }
 
 /* MASK CONTAINER */
-.individual-items__arrow-mask {
+.items-banner__arrow-mask {
     position: absolute;
     top: 0;
     left: 0;
@@ -123,7 +123,7 @@
 }
 
 /* ARROW SVG */
-.individual-items__arrow {
+.items-banner__arrow {
     display: block;
     width: 100%;
     height: 400px; 
@@ -138,7 +138,7 @@
     stroke-linejoin: round;
 }
 
-.individual-items__text {
+.items-banner__text {
     font-size: clamp(0.85rem, 1vw, 1rem);
     line-height: 1.5;
     color: #4b5563;
@@ -149,7 +149,7 @@
 
 /* 3. CENTRAL IMAGE FRAME
    -------------------------------------------------------------------------- */
-.individual-items__central-image {
+.items-banner__central-image {
     position: absolute;
     top: calc(var(--navbar-height) + 10px); 
     bottom: 10px;
@@ -163,7 +163,7 @@
     will-change: transform; 
 }
 
-.individual-items__central-image img {
+.items-banner__central-image img {
     position: absolute;
     top: 0;
     left: 0;
@@ -188,24 +188,24 @@
 /* RESPONSIVE
    -------------------------------------------------------------------------- */
 @media (max-width: 1024px) {
-    .individual-items__title-top,
-    .individual-items__title-bottom {
+    .items-banner__title-top,
+    .items-banner__title-bottom {
         font-size: 11vw;
     }
 }
 
 @media (max-width: 768px) {
-    .individual-items {
+    .items-banner {
         padding: 4rem 1rem;
     }
     
-    .individual-items__container {
+    .items-banner__container {
         padding-bottom: 0;
         justify-content: center;
         padding-top: 4rem;
     }
 
-    .individual-items__row-bottom {
+    .items-banner__row-bottom {
         flex-direction: column; 
         align-items: flex-start;
         gap: 1rem;
@@ -213,8 +213,8 @@
         flex-wrap: wrap; 
     }
 
-    .individual-items__title-top,
-    .individual-items__title-bottom {
+    .items-banner__title-top,
+    .items-banner__title-bottom {
         font-size: 15vw;
         line-height: 0.9;
         /* Reset transform on mobile */
@@ -222,35 +222,35 @@
         text-align: left;
     }
     
-    .individual-items__title-top {
+    .items-banner__title-top {
         width: auto;
     }
 
-    .individual-items__info {
+    .items-banner__info {
         max-width: 100%;
         min-width: auto;
         padding-bottom: 0;
         transform: none; 
     }
 
-    .individual-items__arrow-wrapper {
+    .items-banner__arrow-wrapper {
         height: 50px; 
         transform: rotate(90deg);
         transform-origin: left top;
         margin-bottom: 1rem;
     }
     
-    .individual-items__arrow {
+    .items-banner__arrow {
         height: 100%; 
         position: static;
     }
-    .individual-items__arrow-mask {
+    .items-banner__arrow-mask {
         position: static;
         overflow: visible;
         height: auto !important; 
     }
     
-    .individual-items__central-image {
+    .items-banner__central-image {
         width: 80%;
         opacity: 0.15; 
         transform: translateX(-50%) !important; 

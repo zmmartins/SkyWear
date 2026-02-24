@@ -1,10 +1,10 @@
 import React from 'react';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
+import BundlesCarousel from './components/BundlesCarousel';
 import ScrollReveal from './components/ScrollReveal';
-import IndividualItems from './components/IndividualItems';
-import LandingIntro from "./components/LandingIntro";
-import IndividualItemsGrid from "./components/IndividualItemsGrid";
+import ItemsBanner from './components/ItemsBanner';
+import LandingHero from "./components/LandingHero";
+import ItemGrid from "./components/ItemGrid";
 
 function App(){
   return(
@@ -20,12 +20,12 @@ function App(){
           collapseStart={0.9}   // Starts closing automatically only when you are back to 70%
           autoComplete={true}
       >
-          <LandingIntro />
-          <Hero />
+          <LandingHero />
+          <BundlesCarousel />
       </ScrollReveal>
       
-      <IndividualItems />
-      <IndividualItemsGrid />
+      <ItemsBanner />
+      <ItemGrid />
 
     </main>
   );
