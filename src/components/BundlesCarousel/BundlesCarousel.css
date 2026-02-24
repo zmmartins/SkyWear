@@ -39,7 +39,7 @@
     --bc-dot-glow: rgba(106, 148, 212, 0.35);
 }
 
-.bundles-carousel-carousel[data-theme="summer"] {
+.bundles-carousel[data-theme="summer"] {
     --bc-dot-color: #ff8e4f;
     --bc-dot-glow: rgba(255, 142, 79, 0.35);
 }
