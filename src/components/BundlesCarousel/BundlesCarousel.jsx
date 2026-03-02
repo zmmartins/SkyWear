@@ -5,7 +5,7 @@ import "./BundlesCarousel.css";
 import BundleSlide from "./BundleSlide";
 import useBundlesCarousel from "./hooks/useBundlesCarousel";
 import useResponsiveOrbs from "./hooks/useResponsiveOrbs";
-import { getBundleSlides } from "./data/getBundleSlides";
+import { getBundleSlides } from "../../services/api"; // Updated to point to your new services folder
 import { getPrefetchUrlsForSlide, prefetchImages } from "../../utils/prefetch";
 
 /**

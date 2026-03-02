@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import './ItemsBanner.css';
+import Promo1Img from "../../assets/Promo1.png";
 
 export default function ItemsBanner() {
     const sectionRef = useRef(null);
@@ -165,13 +166,13 @@ export default function ItemsBanner() {
                 >
                     <img 
                         className="image-base"
-                        src="assets/img/Promo1.png" 
+                        src={Promo1Img} 
                         alt="Traveler carrying a bag" 
                         loading="lazy"
                     />
                     <img 
                         className="image-blur-overlay"
-                        src="assets/img/Promo1.png" 
+                        src={Promo1Img}
                         alt="" 
                         aria-hidden="true"
                     />

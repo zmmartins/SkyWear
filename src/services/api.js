@@ -1,4 +1,4 @@
-import { SLIDES } from "./slides";
+import { SLIDES } from "./mockData";
 
 /**
  * SERVICE: getBundleSlides

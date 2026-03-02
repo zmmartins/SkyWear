@@ -9,7 +9,7 @@
  * that to "clothing-piece--pants".
  */
 
-const BASE_PATH = "assets/img";
+const BASE_PATH = `${import.meta.env.BASE_URL}mock-images/`
 
 export const SLIDES = [
     {
