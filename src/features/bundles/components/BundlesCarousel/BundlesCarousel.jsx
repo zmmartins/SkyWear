@@ -3,10 +3,10 @@ import "./BundlesCarousel.css";
 
 // Components & Hooks
 import BundleSlide from "./BundleSlide";
-import useBundlesCarousel from "./hooks/useBundlesCarousel";
-import useResponsiveOrbs from "./hooks/useResponsiveOrbs";
-import { getBundleSlides } from "../../services/api"; // Updated to point to your new services folder
-import { getPrefetchUrlsForSlide, prefetchImages } from "../../utils/prefetch";
+import useBundlesCarousel from "../../hooks/useBundlesCarousel";
+import useResponsiveOrbs from "../../hooks/useResponsiveOrbs";
+import { getBundleSlides } from "../../../../services/apiClient"; // Updated to point to your new services folder
+import { getPrefetchUrlsForSlide, prefetchImages } from "../../../../utils/prefetch";
 
 /**
  * COMPONENT: BundlesCarousel

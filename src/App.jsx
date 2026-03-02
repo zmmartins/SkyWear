@@ -1,14 +1,11 @@
-import React from 'react';
-import Navbar from './components/Navbar/Navbar';
-import Home from './pages/Home';
+import Home from '@/pages/Home';
+import MainLayout from '@/layouts/MainLayout';
 
 function App(){
   return(
-    <>
-      {/* Navbar stays here because it should be visible on ALL future pages */}
-      <Navbar />
-      <Home />
-    </>
+    <MainLayout>
+      <Home/>
+    </MainLayout>
   );
 }
 

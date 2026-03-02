@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import './ItemsBanner.css';
-import Promo1Img from "../../assets/Promo1.png";
+import Promo1Img from "./assets/Promo1.png";
 
 export default function ItemsBanner() {
     const sectionRef = useRef(null);

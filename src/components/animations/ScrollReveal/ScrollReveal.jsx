@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import './ScrollReveal.css';
-import { clamp } from '../../utils/clamp';
+import { clamp } from '@/utils/clamp';
 
 export default function ScrollReveal({ 
     children, 

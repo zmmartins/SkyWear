@@ -1,10 +1,9 @@
 import React from 'react';
-import ScrollReveal from '../components/ScrollReveal/ScrollReveal';
-import LandingHero from '../components/LandingHero/LandingHero';
-import BundlesCarousel from '../components/BundlesCarousel/BundlesCarousel';
-import ItemsBanner from '../components/ItemsBanner/ItemsBanner';
-import ItemGrid from '../components/ItemGrid/ItemGrid';
-import './Home.css';
+import ScrollReveal from '@/components/animations/ScrollReveal';
+import LandingHero from '@/features/core/components/LandingHero';
+import BundlesCarousel from '@/features/bundles/components/BundlesCarousel';
+import ItemsBanner from '@/features/catalog/components/ItemsBanner';
+import ItemGrid from '@/features/catalog/components/ItemGrid';
 
 export default function Home() {
   return (
