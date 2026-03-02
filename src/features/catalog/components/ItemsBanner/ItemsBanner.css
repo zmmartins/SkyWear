@@ -67,7 +67,7 @@
        We add the JS offset variable to the base CSS position.
        Default offset is 0px.
     */
-    transform: translateX(calc(-2vw + var(--scroll-offset-top, 0px)));
+    transform: translateX(calc(-5.8vw + var(--scroll-offset-top, 0px)));
 }
 
 /* Bottom Row: Flex Container */
@@ -87,7 +87,7 @@
         change y translate to 0 for second row to go to bottom 
         keep at -290px for it to be right below top row
     */
-    transform: translate(calc(2vw + var(--scroll-offset-bottom, 0px)), -290px);
+    transform: translate(calc(3.4vw + var(--scroll-offset-bottom, 0px)), -290px);
 }
 
 /* 2. TEXT & ARROW BLOCK
