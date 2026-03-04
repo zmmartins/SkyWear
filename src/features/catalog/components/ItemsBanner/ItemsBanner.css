@@ -9,7 +9,6 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    
     background-color: #ffffff; 
     color: #111827; 
     padding: 0;
@@ -20,15 +19,12 @@
     width: 100%;
     max-width: var(--max-width-content, 1400px);
     margin: 0 auto;
-    
     height: 100vh; 
     display: flex;
     flex-direction: column;
     justify-content: center; 
-    
     gap: 0.5rem; 
     position: relative;
-    
     padding-top: var(--navbar-height);
     padding-left: 1rem;
     padding-right: 1rem;
@@ -46,11 +42,8 @@
     color: #000000;
     margin: 0;
     white-space: nowrap; 
-    
     position: relative;
     z-index: 2; 
-    
-    /* PERFORMANCE: Promote to own layer to avoid repaints during scroll */
     will-change: transform;
 }
 
@@ -62,15 +55,10 @@
 .items-banner__title-top {
     width: 100%;
     display: block;
-    
-    /* CSS is the source of truth. 
-       We add the JS offset variable to the base CSS position.
-       Default offset is 0px.
-    */
-    transform: translateX(calc(-5.8vw + var(--scroll-offset-top, 0px)));
+    /* Hardware Accelerated X-Axis sliding */
+    transform: translate3d(calc(-5.8vw + var(--scroll-offset-top, 0px)), 0, 0);
 }
 
-/* Bottom Row: Flex Container */
 .items-banner__row-bottom {
     display: flex;
     align-items: flex-end; 
@@ -83,11 +71,8 @@
 }
 
 .items-banner__title-bottom {
-    /* 
-        change y translate to 0 for second row to go to bottom 
-        keep at -290px for it to be right below top row
-    */
-    transform: translate(calc(3.4vw + var(--scroll-offset-bottom, 0px)), -290px);
+    /* Hardware Accelerated X & Y Axis offset */
+    transform: translate3d(calc(3.4vw + var(--scroll-offset-bottom, 0px)), -290px, 0);
 }
 
 /* 2. TEXT & ARROW BLOCK
@@ -103,7 +88,6 @@
     z-index: 2;
 }
 
-/* ARROW WRAPPER */
 .items-banner__arrow-wrapper {
     height: 400px; 
     width: 24px;
@@ -111,18 +95,13 @@
     position: relative;
 }
 
-/* MASK CONTAINER */
 .items-banner__arrow-mask {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%; 
+    inset: 0;
     overflow: hidden;
     will-change: height;
 }
 
-/* ARROW SVG */
 .items-banner__arrow {
     display: block;
     width: 100%;
@@ -130,7 +109,6 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    
     fill: none;
     stroke: var(--color-accent, #f97316);
     stroke-width: 2px;
@@ -154,10 +132,8 @@
     top: calc(var(--navbar-height) + 10px); 
     bottom: 10px;
     left: 50%; 
-    
     width: 25vw; 
     min-width: 280px; 
-    
     z-index: 0; 
     pointer-events: none;
     will-change: transform; 
@@ -165,18 +141,14 @@
 
 .items-banner__central-image img {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
-    border-radius: 0;
 }
 
-.image-base {
-    z-index: 1;
-}
+.image-base { z-index: 1; }
 
 .image-blur-overlay {
     filter: blur(4px);
@@ -189,15 +161,11 @@
    -------------------------------------------------------------------------- */
 @media (max-width: 1024px) {
     .items-banner__title-top,
-    .items-banner__title-bottom {
-        font-size: 11vw;
-    }
+    .items-banner__title-bottom { font-size: 11vw; }
 }
 
 @media (max-width: 768px) {
-    .items-banner {
-        padding: 4rem 1rem;
-    }
+    .items-banner { padding: 4rem 1rem; }
     
     .items-banner__container {
         padding-bottom: 0;
@@ -217,14 +185,11 @@
     .items-banner__title-bottom {
         font-size: 15vw;
         line-height: 0.9;
-        /* Reset transform on mobile */
-        transform: translate(0, 0); 
+        transform: translate3d(0, 0, 0); 
         text-align: left;
     }
     
-    .items-banner__title-top {
-        width: auto;
-    }
+    .items-banner__title-top { width: auto; }
 
     .items-banner__info {
         max-width: 100%;
@@ -240,10 +205,8 @@
         margin-bottom: 1rem;
     }
     
-    .items-banner__arrow {
-        height: 100%; 
-        position: static;
-    }
+    .items-banner__arrow { height: 100%; position: static; }
+    
     .items-banner__arrow-mask {
         position: static;
         overflow: visible;
@@ -253,6 +216,6 @@
     .items-banner__central-image {
         width: 80%;
         opacity: 0.15; 
-        transform: translateX(-50%) !important; 
+        transform: translate3d(-50%, 0, 0) !important; 
     }
 }
