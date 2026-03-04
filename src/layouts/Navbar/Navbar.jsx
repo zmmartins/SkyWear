@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavbarTheme } from "./hooks/useNavbarTheme";
+import { useCartStore } from "@/store/cartStore";
 import "./Navbar.css";
 
 /**
@@ -23,6 +24,11 @@ const SECTIONS = [
 export default function Navbar() {
     const { navbarRef, currentSection } = useNavbarTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    // Calculation of the total quantity
+    const cartItemCount = useCartStore((state) =>
+        state.suitcase.reduce((total, item) => total + item.quantity, 0)
+    );
 
     // Ensure we clean up the scroll timeout if the component unmounts
     useEffect(() => {
@@ -129,7 +135,7 @@ export default function Navbar() {
                     <button className="btn-cart" aria-label="Cart">
                         <LiquidGlassLayers />
                         <div className="btn-content" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <span className="navbar__cart-count mono">0</span>
+                            <span className="navbar__cart-count mono">{ cartItemCount }</span>
                             {/* Logo path adjusted to match absolute structure if needed, or handled via CSS */}
                             <div className="navbar__cart-icon"></div>
                         </div>
