@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useNavbarTheme } from "./hooks/useNavbarTheme";
 import { useCartStore } from "@/store/cartStore";
 import "./Navbar.css";
@@ -24,6 +25,8 @@ const SECTIONS = [
 export default function Navbar() {
     const { navbarRef, currentSection } = useNavbarTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     // Calculation of the total quantity
     const cartItemCount = useCartStore((state) =>
@@ -41,7 +44,7 @@ export default function Navbar() {
      * Handles custom smooth scrolling to sections, including setting
      * a temporary flag to prevent the ScrollReveal component from hijacking it.
      */
-    const scrollToSection = (sec) => {
+    const executeScroll = (sec) => {
         // --- 1. SET "DO NOT DISTURB" FLAG FOR SCROLL REVEAL ---
         document.documentElement.dataset.navScrolling = 'true';
         
@@ -66,7 +69,6 @@ export default function Navbar() {
                 }
                 
                 window.scrollTo({ top: targetY, behavior: 'smooth' });
-                setIsMenuOpen(false);
                 return;
             }
         }
@@ -75,8 +77,30 @@ export default function Navbar() {
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        setIsMenuOpen(false);
     };
+
+    const handleMenuClick = (sec) => {
+        setIsMenuOpen(false);
+        if(location.pathname.includes('/cart')){
+            navigate('/', { state: { scrollTo: sec.id } });
+        }
+        else{
+            executeScroll(sec);
+        }
+    }
+
+    useEffect(() => {
+        if (location.pathname === '/' && location.state?.scrollTo){
+            const sec = SECTIONS.find(s => s.id === location.state.scrollTo);
+            if (sec) {
+                setTimeout(() => {
+                    executeScroll(sec);
+                }, 100);
+            }
+
+            navigate('/', { replace: true, state: {} });
+        }
+    }, [location, navigate]);
 
     return(
         <header className="navbar" ref={navbarRef}>
@@ -84,12 +108,12 @@ export default function Navbar() {
             
             {/* LEFT COLUMN */}
             <div className="navbar__col navbar__col--left">
-                {isMenuOpen && (
+                {isMenuOpen && 
                     <div 
                         className="navbar__modal-overlay" 
                         onClick={() => setIsMenuOpen(false)}
                     />
-                )}
+                }
 
                 <div className={`navbar__context-menu-wrapper ${isMenuOpen ? 'is-open' : ''}`}>
                     <LiquidGlassLayers />
@@ -107,7 +131,7 @@ export default function Navbar() {
                                 <button 
                                     key={sec.id} 
                                     className="navbar__modal-btn mono"
-                                    onClick={() => scrollToSection(sec)}
+                                    onClick={() => handleMenuClick(sec)}
                                     tabIndex={isMenuOpen ? 0 : -1} 
                                 >
                                     <LiquidGlassLayers/>
@@ -132,7 +156,11 @@ export default function Navbar() {
                         <span className="btn-content">Sign in</span>
                     </button>
                     
-                    <button className="btn-cart" aria-label="Cart">
+                    <button 
+                        className="btn-cart" 
+                        aria-label="Cart"
+                        onClick={() => navigate('/cart')}
+                    >
                         <LiquidGlassLayers />
                         <div className="btn-content" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <span className="navbar__cart-count mono">{ cartItemCount }</span>
