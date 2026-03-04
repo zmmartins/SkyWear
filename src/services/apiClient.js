@@ -1,32 +1,35 @@
-import { SLIDES } from "./mockData";
-
 /**
- * SERVICE: getBundleSlides
+ * SERVICE: apiClient (Global HTTP Wrapper)
  * ------------------------------------------------------------------
- * Simulates fetching slide data from a remote API.
+ * Centralized network client. All feature APIs route through this.
+ * Future: Add Authorization headers, interceptors, and error logging here.
  */
 
-// Helper to mimic network latency (remove when integrating real API)
+// Helper to mimic network latency
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function getBundleSlides() {
-    // 1. Simulate Network Request
-    await delay(600); 
-
-    try {
-        // In the future: const response = await fetch('/api/bundle-slides');
-        // const data = await response.json();
+export const apiClient = {
+    /**
+     * Simulates a GET request to a database.
+     * @param {any} mockPayload - The data to return after the delay
+     * @param {number} latency - Simulated ping
+     */
+    async getMock(mockPayload, latency = 600) {
+        await delay(latency);
         
-        const data = SLIDES;
+        // Randomly simulate a 5% network failure rate if you want to test your error boundaries!
+        // if (Math.random() < 0.05) throw new Error("Network timeout");
 
-        // 2. Transformation Layer (Optional)
-        // If the backend returns "image_url" but our UI needs "src", map it here.
-        // This keeps the React components decoupled from API structure.
-        
-        return data;
-
-    } catch (error) {
-        console.error("Failed to fetch bundle slides:", error);
-        return []; // Return empty array to prevent UI crash
+        return mockPayload;
     }
-}
+
+    // FUTURE IMPLEMENTATION:
+    // async get(endpoint) {
+    //     const token = localStorage.getItem('token');
+    //     const res = await fetch(`https://api.skywear.com${endpoint}`, {
+    //         headers: { Authorization: `Bearer ${token}` }
+    //     });
+    //     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    //     return await res.json();
+    // }
+};

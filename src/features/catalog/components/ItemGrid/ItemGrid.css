@@ -41,7 +41,7 @@
     text-align: center;
     white-space: nowrap; 
     
-    will-change: transform;
+    will-change: transform, color;
     transform: translate3d(0, 0, 0);
     transform-origin: center center; 
 }
@@ -63,22 +63,18 @@
     border: none;
     padding: 0;
     cursor: pointer;
-    
     font-family: inherit;
     font-size: 0.9rem; 
     font-weight: 600;
     text-transform: uppercase;
     color: #9ca3af; 
     white-space: nowrap; 
-    
     transition: color 0.3s ease; 
     transform-origin: center center;
-    will-change: transform;
+    will-change: transform, color;
 }
 
-.item-grid__filter-btn:hover {
-    color: #111827; 
-}
+.item-grid__filter-btn:hover { color: #111827; }
 
 /* GRID LAYOUT */
 .item-grid__grid {
@@ -92,19 +88,13 @@
     flex-direction: column;
     gap: 1.25rem;
     cursor: pointer;
-    /* Ensure z-index context for hovering */
     position: relative;
     z-index: 1;
 }
 
-.item-grid__card:hover .item-grid__image {
-    transform: scale(1.05);
-}
-
 /* ==========================================================================
    IMAGE WRAPPER & BLURRED BACKGROUND
-   ========================================================================== 
-*/
+   ========================================================================== */
 
 .item-grid__image-wrapper {
     width: 100%;
@@ -113,76 +103,52 @@
     position: relative;
     border-radius: 2px;
     z-index: 1;
-    /* Optional: subtle shadow for the whole card */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* LAYER 1: BLURRED BACKGROUND (::before) */
-/* Sits at the bottom */
 .item-grid__image-wrapper::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 1; 
-
-    /* Background Image */
+    /* Resolves perfectly because ItemsBg.jpeg is in the adjacent assets folder */
     background-image: url('./assets/ItemsBg.jpeg');
     background-size: cover;
     background-position: center;
-
-    /* Blur Effect */
     filter: blur(20px) brightness(0.9);
-    transform: scale(1.2); /* Scale up to hide blur artifacts at edges */
+    transform: scale(1.2); 
 }
 
 /* LAYER 2: FADING BORDERS MASK (::after) */
-/* Sits ON TOP of background, but BELOW the product */
 .item-grid__image-wrapper::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 2; 
-    
-    /* THE FADE EFFECT: */
-    /* A deep white inset shadow matches the page background (#ffffff). */
-    /* This covers the edges of the blurred image below it. */
     box-shadow: inset 0 0 5px 5px #ffffff;
-    
-    /* Animation settings */
     transition: opacity 0.5s ease;
-    opacity: 1; /* Visible by default (Soft Edges) */
+    opacity: 1; 
     pointer-events: none; 
 }
 
-/* HOVER STATE: HIDE MASK */
-/* When hovering the card, hide the white shadow to reveal rigid edges */
-.item-grid__card:hover .item-grid__image-wrapper::after {
-    opacity: 0;
-}
+.item-grid__card:hover .item-grid__image-wrapper::after { opacity: 0; }
 
 /* LAYER 3: PRODUCT IMAGE */
-/* Sits on TOP of everything */
 .item-grid__image {
     width: 100%;
     height: 100%;
-    
-    /* Fit product inside the blurred frame */
     object-fit: contain; 
     padding: 15px;
-    
     position: relative;
-    z-index: 3; /* Highest z-index ensures it's never faded by the mask */
-    
+    z-index: 3; 
     transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15)); /* Pops the item off the background */
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15)); 
 }
 
-.item-grid__card:hover .item-grid__image {
-    transform: scale(1.05);
-}
-/* ========================================================================== */
+.item-grid__card:hover .item-grid__image { transform: scale(1.05); }
 
-
+/* DETAILS */
 .item-grid__details {
     display: flex;
     flex-direction: column;
@@ -216,7 +182,7 @@
 @media (max-width: 768px) {
     .item-grid__title-active {
         font-size: 18vw; 
-        transform: none !important; 
+        transform: translate3d(0, 0, 0) !important; 
     }
 
     .item-grid__filter-nav {
@@ -227,9 +193,7 @@
         scrollbar-width: none; 
         -ms-overflow-style: none;
     }
-    .item-grid__filter-nav::-webkit-scrollbar {
-        display: none;
-    }
+    .item-grid__filter-nav::-webkit-scrollbar { display: none; }
     
     .item-grid__grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

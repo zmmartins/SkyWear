@@ -11,7 +11,22 @@
 
 const BASE_PATH = `${import.meta.env.BASE_URL}mock-images/`
 
-export const SLIDES = [
+// --- CATALOG DATA ---
+export const MOCK_CATEGORIES = [
+    "all items", "beanie", "hat", "jacket", "hoodie", 
+    "sweater", "tshirt", "pants", "shorts"
+];
+
+export const MOCK_PRODUCTS = [
+    { id: 'prod_001', type: 'jacket', name: 'Expedition Shell', price: 245.00, mainImage: `${BASE_PATH}winter-bundle/jacket.png` },
+    { id: 'prod_002', type: 'hoodie', name: 'Core Fleece Hoodie', price: 95.00, mainImage: `${BASE_PATH}winter-bundle/hoodie2.png` },
+    { id: 'prod_003', type: 'beanie', name: 'Alpine Knit Beanie', price: 35.00, mainImage: `${BASE_PATH}winter-bundle/beanie.png` },
+    { id: 'prod_004', type: 'pants', name: 'Utility Cargo Pants', price: 120.00, mainImage: `${BASE_PATH}winter-bundle/pants1.png` },
+    { id: 'prod_005', type: 'tshirt', name: 'Base Layer Tee', price: 45.00, mainImage: `${BASE_PATH}winter-bundle/tshirt2.png` },
+    { id: 'prod_006', type: 'sweater', name: 'Merino Crew', price: 85.00, mainImage: `${BASE_PATH}summer-bundle/sweater.png` },
+];
+
+export const MOCK_SLIDES = [
     {
         id: 0,
         theme: "winter", // triggers CSS theme variables
