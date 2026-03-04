@@ -56,7 +56,7 @@
     width: 100%;
     display: block;
     /* Hardware Accelerated X-Axis sliding */
-    transform: translate3d(calc(-5.8vw + var(--scroll-offset-top, 0px)), 0, 0);
+    transform: translate3d(calc(-9.5vw + var(--scroll-offset-top, 0px)), 0, 0);
 }
 
 .items-banner__row-bottom {
@@ -72,7 +72,7 @@
 
 .items-banner__title-bottom {
     /* Hardware Accelerated X & Y Axis offset */
-    transform: translate3d(calc(3.4vw + var(--scroll-offset-bottom, 0px)), -290px, 0);
+    transform: translate3d(calc(2vw + var(--scroll-offset-bottom, 0px)), -280px, 0);
 }
 
 /* 2. TEXT & ARROW BLOCK
