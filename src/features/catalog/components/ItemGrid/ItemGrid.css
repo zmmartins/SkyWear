@@ -1,7 +1,10 @@
 /* ==========================================================================
    PRODUCT GRID SECTION
+   Orchestrates the catalog layout, FLIP animations, and layered card UI.
    ========================================================================== */
 
+/* 1. MAIN CONTAINER
+   -------------------------------------------------------------------------- */
 .item-grid {
     position: relative;
     z-index: 20; 
@@ -19,7 +22,8 @@
     gap: 3rem; 
 }
 
-/* --- FILTER HEADER --- */
+/* 2. FILTER HEADER (FLIP Animation Targets)
+   -------------------------------------------------------------------------- */
 .item-grid__header-row {
     display: flex;
     flex-direction: column; 
@@ -29,7 +33,7 @@
     border-bottom: none; 
 }
 
-/* BIG ACTIVE TITLE */
+/* The giant active category text (Hardware accelerated for scroll parallax) */
 .item-grid__title-active {
     font-size: clamp(5rem, 18vw, 18vw); 
     font-weight: 900;
@@ -46,7 +50,6 @@
     transform-origin: center center; 
 }
 
-/* FILTER NAVIGATION */
 .item-grid__filter-nav {
     display: flex;
     flex-wrap: nowrap; 
@@ -76,7 +79,8 @@
 
 .item-grid__filter-btn:hover { color: #111827; }
 
-/* GRID LAYOUT */
+/* 3. GRID LAYOUT
+   -------------------------------------------------------------------------- */
 .item-grid__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -92,10 +96,8 @@
     z-index: 1;
 }
 
-/* ==========================================================================
-   IMAGE WRAPPER & BLURRED BACKGROUND
-   ========================================================================== */
-
+/* 4. PRODUCT CARD: BASE LAYERS (The "Soft Focus" aesthetic)
+   -------------------------------------------------------------------------- */
 .item-grid__image-wrapper {
     width: 100%;
     aspect-ratio: 3 / 4; 
@@ -106,13 +108,12 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* LAYER 1: BLURRED BACKGROUND (::before) */
+/* Layer 1: Blurred Background Image */
 .item-grid__image-wrapper::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: 1; 
-    /* Resolves perfectly because ItemsBg.jpeg is in the adjacent assets folder */
     background-image: url('./assets/ItemsBg.jpeg');
     background-size: cover;
     background-position: center;
@@ -120,7 +121,7 @@
     transform: scale(1.2); 
 }
 
-/* LAYER 2: FADING BORDERS MASK (::after) */
+/* Layer 2: Fading White Vignette Mask */
 .item-grid__image-wrapper::after {
     content: '';
     position: absolute;
@@ -132,9 +133,7 @@
     pointer-events: none; 
 }
 
-.item-grid__card:hover .item-grid__image-wrapper::after { opacity: 0; }
-
-/* LAYER 3: PRODUCT IMAGE */
+/* Layer 3: The actual product image */
 .item-grid__image {
     width: 100%;
     height: 100%;
@@ -146,31 +145,141 @@
     filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15)); 
 }
 
+/* Hover: Fade out the vignette and scale the image up slightly */
+.item-grid__card:hover .item-grid__image-wrapper::after { opacity: 0; }
 .item-grid__card:hover .item-grid__image { transform: scale(1.05); }
 
-/* DETAILS */
+
+/* 5. PRODUCT CARD: HOVER OVERLAYS (Price & Button)
+   -------------------------------------------------------------------------- */
+
+/* 5.1 SOLID PILL: Price (Stays exactly as requested) */
+.item-grid__price {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 10;
+    margin: 0;
+
+    color: rgba(255, 255, 255, 0.95);
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none; 
+}
+
+/* 5.2 LIQUID GLASS: Quick Add Button */
+.item-grid__add-btn {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    z-index: 10;
+    
+    /* Base Overrides for Glass */
+    background: transparent;
+    color: #ffffff;
+    border: none;
+    padding: 0 0.9rem;
+    font-size: 2rem;
+    border-radius: 999px;
+    
+    /* Initial hidden state */
+    opacity: 0;
+    transform: translate(-50%, 10px);
+    /* Spring physics for hover release */
+    transition: all 0.3s cubic-bezier(0.5, 1.5, 0.4, 1);
+    cursor: pointer;
+}
+
+/* Force the glass container to always be active inside this button 
+   because the button itself handles the fading in and out on hover. */
+.item-grid__add-btn .liquid-glass-container { opacity: 1; }
+
+/* --- HOVER & CLICK REVEAL PHYSICS --- */
+
+/* 1. Reveal on Card Hover */
+.item-grid__card:hover .item-grid__price {
+    opacity: 1;
+    transform: translateY(0); 
+}
+
+.item-grid__card:hover .item-grid__add-btn {
+    opacity: 1;
+    transform: translate(-50%, 0); 
+}
+
+.item-grid__card:hover .item-grid__add-btn:hover{
+    transform: translate(-50%, 0) scale(1.2);
+}
+
+.item-grid__card:hover .item-grid__add-btn:hover .liquid-glass__face {
+    backdrop-filter: saturate(150%);
+    -webkit-backdrop-filter: saturate(150%);
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.item-grid__card:hover .item-grid__add-btn:hover .liquid-glass__edge {
+    box-shadow:
+        inset 3px 3px 6px rgba(255, 255, 255, 0.8),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.8);
+}
+
+.item-grid__add-btn:hover .liquid-glass__face {
+    backdrop-filter: saturate(150%);
+    -webkit-backdrop-filter: saturate(150%);
+}
+
+.item-grid__add-btn:hover .liquid-glass__edge {
+    /* Brighten the inner rim highlights so it feels like it's glowing */
+    box-shadow:
+        inset 3px 3px 6px rgba(255, 255, 255, 0.8),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.8);
+}
+
+/* 3. Squish & Bend on Button Click */
+.item-grid__add-btn:active {
+    transform: translate(-50%, 0px) scale(0.9) !important;
+    transition: transform 0.1s ease-out;
+}
+
+.item-grid__add-btn:active .liquid-glass__bend {
+    filter: url(#glass-blur); /* Triggers the global SVG distortion */
+}
+
+/* Text sits above glass */
+.btn-content {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+
+/* 6. PRODUCT CARD: DETAILS (Below Image)
+   -------------------------------------------------------------------------- */
 .item-grid__details {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    justify-content: center; 
+    align-items: center;
+    padding-top: 0.5rem;
 }
 
 .item-grid__name {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.05rem;
+    font-weight: 700;
     text-transform: uppercase;
     color: #111827;
     margin: 0;
     letter-spacing: -0.02em;
+    text-align: center; 
 }
 
-.item-grid__price {
-    font-size: 1rem;
-    color: #4b5563; 
-    margin: 0;
-    font-variant-numeric: tabular-nums; 
-}
 
+/* 7. UTILITY & EMPTY STATES
+   -------------------------------------------------------------------------- */
 .item-grid__empty {
     text-align: center;
     color: #6b7280;
@@ -178,13 +287,17 @@
     padding: 4rem 0;
 }
 
-/* MOBILE ADJUSTMENT */
+
+/* 8. MOBILE ADJUSTMENTS
+   -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
+    /* Disable parallax transform on mobile to save CPU */
     .item-grid__title-active {
         font-size: 18vw; 
         transform: translate3d(0, 0, 0) !important; 
     }
 
+    /* Convert category filters to a horizontal scrolling row */
     .item-grid__filter-nav {
         overflow-x: auto; 
         justify-content: flex-start; 
@@ -193,7 +306,10 @@
         scrollbar-width: none; 
         -ms-overflow-style: none;
     }
-    .item-grid__filter-nav::-webkit-scrollbar { display: none; }
+    
+    .item-grid__filter-nav::-webkit-scrollbar { 
+        display: none; 
+    }
     
     .item-grid__grid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

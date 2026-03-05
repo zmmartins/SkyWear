@@ -3,36 +3,23 @@
  * Project: React Frontend with Liquid Transitions
  * -------------------------------------------------------------------------- */
 
-/* 1. FONT OPTIMIZATION 
-   Added 'font-display: swap' via URL and kept Inter/Space Mono.
-   Tip: Consider self-hosting these for better performance in production.
-*/
+/* 1. FONT OPTIMIZATION */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
-/* 2. DESIGN TOKENS (CSS Variables) 
-*/
+/* 2. DESIGN TOKENS (CSS Variables) */
 :root {
-  /* Layout */
   --navbar-height: 64px;
   --max-width-content: 1100px;
-
-  /* Colors: Dark Mode Palette */
   --color-bg: #050608;
   --color-bg-elevated: #0b0f19;
   --color-surface: #111827;
   --color-border: #1f2933;
   --color-text: #f9fafb;
   --color-text-muted: #9ca3af;
-
-  /* Accent: Orange Liquid Effect */
   --color-accent: #f97316;
   --color-accent-soft: rgba(249, 115, 22, 0.12);
-
-  /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-  /* Animation & Shape */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, monospace;
   --radius-lg: 1rem;
   --radius-pill: 999px;
   --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.6);
@@ -40,73 +27,46 @@
   --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 3. RESET & BASE STYLES 
-*/
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
+/* 3. RESET & BASE STYLES */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
 html {
-  /* Necessary for your ScrollReveal component logic */
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
-  overflow-x: hidden; /* Prevents horizontal jitter during orb expansions */
+  overflow-x: hidden; 
 }
-
 body {
   font-family: var(--font-sans);
   background-color: var(--color-bg);
-  /* radial-gradient: fixed prevents gradient stretching on long pages */
   background: radial-gradient(circle at top, #020617, var(--color-bg)) fixed;
   color: var(--color-text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 4. TYPOGRAPHY & UTILITIES 
-*/
-h1, h2, h3, h4, h5 {
-  margin: 0;
-  font-weight: 600;
-  letter-spacing: -0.02em; /* Tighter headings for modern look */
-}
-
+/* 4. TYPOGRAPHY & UTILITIES */
+h1, h2, h3, h4, h5 { margin: 0; font-weight: 600; letter-spacing: -0.02em; }
 p { margin: 0; }
-
-.mono {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
-
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .text-muted { color: var(--color-text-muted); }
+a { color: inherit; text-decoration: none; transition: color var(--transition-fast); }
 
-/* 5. LAYOUT COMPONENTS 
-*/
+/* 5. LAYOUT COMPONENTS */
 .content-section {
-  padding: 4rem 1.5rem; /* Better breathing room on mobile */
+  padding: 4rem 1.5rem; 
   max-width: var(--max-width-content);
   margin: 0 auto;
-  min-height: 100vh; /* Ensures sections take up full viewport for snap */
+  min-height: 100vh; 
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
 }
-
 .content-section h2 {
-  font-size: clamp(1.5rem, 5vw, 2rem); /* Fluid typography */
+  font-size: clamp(1.5rem, 5vw, 2rem); 
   margin-bottom: 1.5rem;
 }
 
-/* 6. INTERACTIVE ELEMENTS 
-*/
+/* 6. INTERACTIVE ELEMENTS */
 .btn {
   appearance: none;
   border-radius: var(--radius-pill);
@@ -122,27 +82,64 @@ p { margin: 0; }
   transition: all var(--transition-fast);
   user-select: none;
 }
-
 .btn:active { transform: scale(0.97); }
 .btn:hover { opacity: 0.9; }
 
 .btn--primary { background: var(--color-accent); color: #000; }
-.btn--ghost { 
-  background: transparent; 
-  color: var(--color-text); 
-  border-color: var(--color-border); 
+.btn--ghost { background: transparent; color: var(--color-text); border-color: var(--color-border); }
+.btn--ghost:hover { background: var(--color-accent-soft); border-color: var(--color-accent); }
+
+/* ==========================================================================
+   THE LIQUID GLASS DOM LAYERS (Global Definition)
+   ========================================================================== */
+
+/* NEW: Ensures text inside glass buttons sits securely above the glass layers */
+.btn-content {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
 }
 
-.btn--ghost:hover {
-  background: var(--color-accent-soft);
-  border-color: var(--color-accent);
+.liquid-glass-container {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1; 
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* 7. MEDIA HELPERS 
-*/
+.liquid-glass__bend,
+.liquid-glass__face,
+.liquid-glass__edge {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
 
-a {
-  color: inherit;
-  text-decoration: none;
-  transition: color var(--transition-fast);
+.liquid-glass__bend {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  filter: url(#glass-blur);
+  z-index: 0;
+}
+
+.liquid-glass__face {
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
+
+.liquid-glass__edge {
+  box-shadow: inset 3px 3px 3px rgba(255, 255, 255, 0.45), inset -3px -3px 3px rgba(255, 255, 255, 0.45);
+  z-index: 2;
+}
+
+/* Global hover triggers (Components can also force this to 1 locally) */
+.btn-text:hover > .liquid-glass-container,
+.btn-cart:hover > .liquid-glass-container,
+.navbar__context-menu-wrapper:hover > .liquid-glass-container,
+.navbar__context-menu-wrapper.is-open > .liquid-glass-container,
+.navbar__modal-btn:hover > .liquid-glass-container {
+  opacity: 1;
 }

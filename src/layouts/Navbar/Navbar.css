@@ -128,58 +128,6 @@
 }
 
 /* ==========================================================================
-   THE LIQUID GLASS DOM LAYERS
-   ========================================================================== */
-
-.liquid-glass-container {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: -1; 
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.liquid-glass__bend,
-.liquid-glass__face,
-.liquid-glass__edge {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-}
-
-.liquid-glass__bend {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  filter: url(#glass-blur);
-  z-index: 0;
-}
-
-.liquid-glass__face {
-  box-shadow:
-    0 4px 4px rgba(0, 0, 0, 0.15),
-    0 0 12px rgba(0, 0, 0, 0.08);
-  z-index: 1;
-}
-
-.liquid-glass__edge {
-  box-shadow:
-    inset 3px 3px 3px rgba(255, 255, 255, 0.45),
-    inset -3px -3px 3px rgba(255, 255, 255, 0.45);
-  z-index: 2;
-}
-
-/* Reveal liquid layers */
-.btn-text:hover > .liquid-glass-container,
-.btn-cart:hover > .liquid-glass-container,
-.navbar__context-menu-wrapper:hover > .liquid-glass-container,
-.navbar__context-menu-wrapper.is-open > .liquid-glass-container,
-.navbar__modal-btn:hover > .liquid-glass-container {
-  opacity: 1;
-}
-
-/* ==========================================================================
    CART ICON & MODAL SPECIFICS
    ========================================================================== */
 
