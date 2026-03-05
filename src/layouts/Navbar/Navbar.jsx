@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNavbarTheme } from "./hooks/useNavbarTheme";
 import { useCartStore } from "@/store/cartStore";
@@ -32,6 +32,25 @@ export default function Navbar() {
     const cartItemCount = useCartStore((state) =>
         state.suitcase.reduce((total, item) => total + item.quantity, 0)
     );
+
+    // --- Visual Cart feedback logic ----
+    const [isCartBumping, setIsCartBumping] = useState(false);
+    const prevCountRef = useRef(cartItemCount);
+
+    useEffect(() => {
+        if (cartItemCount > prevCountRef.current){
+            setIsCartBumping(true);
+
+            const timer = setTimeout(() => setIsCartBumping(false), 800);
+
+            prevCountRef.current = cartItemCount;
+            return () => clearTimeout(timer);
+        }
+        else{
+            prevCountRef.current = cartItemCount;
+        }
+    }, [cartItemCount]);
+
 
     // Ensure we clean up the scroll timeout if the component unmounts
     useEffect(() => {
@@ -163,9 +182,11 @@ export default function Navbar() {
                     >
                         <LiquidGlassLayers />
                         <div className="btn-content" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <span className="navbar__cart-count mono">{ cartItemCount }</span>
+                            <span className={`navbar__cart-count mono ${isCartBumping ? 'is-bumping' : '' }`}>
+                                { cartItemCount }
+                            </span>
                             {/* Logo path adjusted to match absolute structure if needed, or handled via CSS */}
-                            <div className="navbar__cart-icon"></div>
+                            <div className={`navbar__cart-icon ${isCartBumping ? 'is-bumping' : ''}`}></div>
                         </div>
                     </button>
                 </div>

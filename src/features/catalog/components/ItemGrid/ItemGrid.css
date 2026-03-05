@@ -199,6 +199,76 @@
    because the button itself handles the fading in and out on hover. */
 .item-grid__add-btn .liquid-glass-container { opacity: 1; }
 
+/* 5.3 EXPANDING ORB (Click Feedback) 
+   ---------------------------------------*/
+
+.item-grid__orb {
+    position: absolute;
+    left: var(--click-x);
+    top: var(--click-y);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5; 
+    
+    /* THE FIX: The parent ONLY animates size now. No opacity! */
+    animation: orb-grow 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.item-grid__orb .liquid-glass-container {
+    opacity: 1; 
+}
+
+/* 1. The Face (Frost Tint) - Fades out normally */
+.item-grid__orb .liquid-glass__face {
+    background-color: rgba(255, 255, 255, 0.15); 
+    animation: orb-fade 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* 2. The Edge (Highlights) - Fades out normally */
+.item-grid__orb .liquid-glass__edge {
+    animation: orb-fade 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* 3. The Bend (Blur & Saturation) - Animates the actual glass physics! */
+.item-grid__orb .liquid-glass__bend {
+    animation: orb-glass-dissolve 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.item-grid__orb-text{
+    position: relative;
+    z-index: 20;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    animation: orb-text-fade 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* --- THE NEW ANIMATION KEYFRAMES --- */
+
+@keyframes orb-grow {
+    0% { width: 36px; height: 36px; }
+    100% { width: 800px; height: 800px; }
+}
+
+@keyframes orb-fade {
+    0%{ opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes orb-glass-dissolve {
+    0%, 50% {
+        backdrop-filter: blur(5px) saturate(180%);
+        -webkit-backdrop-filter: blur(5px) saturate(180%);
+        opacity: 1;
+    }
+    100% {
+        backdrop-filter: blur(0px) saturate(100%);
+        -webkit-backdrop-filter: blur(0px) saturate(100%);
+        opacity: 0;
+    }
+}
 /* --- HOVER & CLICK REVEAL PHYSICS --- */
 
 /* 1. Reveal on Card Hover */

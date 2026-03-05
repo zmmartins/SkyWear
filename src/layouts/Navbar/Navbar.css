@@ -144,12 +144,28 @@
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
+
+  transition: color 0.3s ease, transform 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
+}
+
+.navbar__cart-icon.is-bumping{
+  color: var(--color-accent);
+  transform: scale(1.2);
 }
 
 .navbar__cart-count {
   font-size: 0.8rem;
   position: relative;
   top: 1px; 
+  display: inline-block;
+
+  transition: color 0.3s ease, transform 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
+}
+
+.navbar__cart-count.is-bumping{
+  color: var(--color-accent);
+  transform: scale(1.4);
+  font-weight: 800;
 }
 
 .navbar__modal-overlay {
