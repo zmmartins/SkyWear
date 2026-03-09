@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 
 /**
  * OPTIMIZATION: Image Loading Strategy
@@ -42,11 +42,31 @@ const BundleSlide = ({
     const {
         theme = "winter", // Fallback theme
         badge = "New Arrival",
-        title = "Untitled",
+        name = "Untitled",
         pieces = 0,
-        price = "$0.00",
+        daily = 0.0,
         stack = [] 
     } = slide;
+
+    // Use DB properties if available, fallback to old mock strings
+    const displayPrice = `$${daily.toFixed(2)} / day`;
+
+    // CSS Animation Safeguard
+    // Re-maps the stack internally to guarantee CSS animation classes are sequencial
+    const processedStack = useMemo(() => {
+        return stack.map(layer => {
+            const updatedImages = layer.images?.map(img => {
+                const isMain = img.priority || img.is_display || img.className?.includes("main");
+
+                return {
+                    ...img,
+                    className: isMain ? "main" : `alt-item ${img.position_class || ""}`.trim()
+                };
+            });
+            return { ...layer, images: updatedImages };
+        });
+    }, [stack]);
+
 
     return (
         <article 
@@ -64,14 +84,14 @@ const BundleSlide = ({
                 {/* 2. Content Info Panel */}
                 <div className="carousel__info">
                     <p className="carousel__badge">{badge}</p>
-                    <h1 className="carousel__title">{title}</h1>
+                    <h1 className="carousel__title">{name}</h1>
 
                     <div className="carousel__meta">
                         <span className="carousel__pieces">
                             <span className="num_pieces mono">{pieces}</span> pieces
                         </span>
                         <span className="carousel__meta-dot">•</span>
-                        <span className="carousel__price mono">{price}</span>
+                        <span className="carousel__price mono">{displayPrice}</span>
                     </div>
                 </div>
 
@@ -89,7 +109,7 @@ const BundleSlide = ({
 
                     {/* B. The Clothing Stack (Images inside the orb) */}
                     <div className="outfit-stack">
-                        {stack.map((layer, layerIndex) => (
+                        {processedStack.map((layer, layerIndex) => (
                             <div 
                                 key={layer.key || `layer-${layerIndex}`} 
                                 className={layer.className}
