@@ -25,40 +25,75 @@
 /* 2. FILTER HEADER (FLIP Animation Targets)
    -------------------------------------------------------------------------- */
 .item-grid__header-row {
-    display: flex;
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    padding-bottom: 1rem;
-    border-bottom: none; 
+    position: sticky;
+    top: calc(1.1 * var(--navbar-height, 64px));
+    z-index: 30;
+
+    /* FLICKER FIXES */
+    height: calc( (15rem * (1 - var(--shrink-progress))) + 3rem );
+    overflow-anchor: none;
+
+    /* DOCK MORPHING MATH */
+    /* Progress 0: touches the screen edges (-2rem to counter grid padding) 
+       Progress 1: margins hit 0, letting it float within the container. */ 
+    margin-left: calc(-2rem * (1- var(--shrink-progress)));
+    margin-right: calc(-2rem * (1 - var(--shrink-progress)));
+    
+    border-radius: calc(999px * var(--shrink-progress));
+
+    --shrink-progress: 0;
+}
+
+.dock-glass{
+    opacity: var(--shrink-progress) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, calc(0.15 * var(--shrink-progress)));
+}
+
+.item-grid__title-wrapper{
+    position: absolute;
+    /* Move from center (50%) to left edge (2rem) */
+    left: calc( 50% * (1 - var(--shrink-progress)) + 3rem * var(--shrink-progress) );
+    /* Move from slightly above center (35%) to exact vertical center (50%) */
+    top: calc( 35% * (1 - var(--shrink-progress)) + 50% * var(--shrink-progress) );
+    /* Transform offsets to keep it perfectly aligned along the journey */
+    transform: translate(calc(-50% * (1 - var(--shrink-progress))), -50%);
+    z-index: 10;        
 }
 
 /* The giant active category text (Hardware accelerated for scroll parallax) */
 .item-grid__title-active {
-    font-size: clamp(5rem, 18vw, 18vw); 
+    font-size: calc(
+        (clamp(5rem, 15vw, 15vw) * (1 - var(--shrink-progress))) + 
+        (1.75rem * var(--shrink-progress))
+    );
     font-weight: 900;
     text-transform: uppercase;
     color: var(--color-accent, #f97316); 
-    margin-top: 5vh;
-    line-height: 0.85; 
+    line-height: 1; 
     letter-spacing: -0.04em;
-    text-align: center;
     white-space: nowrap; 
+    margin: 0;
     
-    will-change: transform, color;
-    transform: translate3d(0, 0, 0);
-    transform-origin: center center; 
+    will-change: transform, color, font-size;
+    transform-origin: center center;
+}
+
+.item-grid__nav-wrapper{
+    position: absolute;
+    /* Move from center (50%) to right edge (2rem) */
+    right: calc( 50% * (1 - var(--shrink-progress)) + 3rem * var(--shrink-progress) );
+    /* Move from below title (70%) to exact vertical center (50%) */
+    top: calc( 70% * (1 - var(--shrink-progress)) + 50% * var(--shrink-progress) );
+    /* Offset pulls to center initially, aligns to right edge at the end */
+    transform: translate(calc(50% * (1 - var(--shrink-progress))), -50%);
+    z-index: 10;
 }
 
 .item-grid__filter-nav {
     display: flex;
     flex-wrap: nowrap; 
     gap: 1rem;       
-    justify-content: center;
     align-items: center;
-    width: 100%;
-    position: relative; 
-    z-index: 2;
 }
 
 .item-grid__filter-btn {

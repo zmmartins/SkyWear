@@ -4,6 +4,14 @@ import { useCatalogItems } from '../../hooks/useCatalogItems';
 import ProductCard from './ProductCard';
 import './ItemGrid.css';
 
+const DockGlassLayer = () => (
+    <div className="liquid-glass-container dock-glass" aria-hidden="true">
+        <div className="liquid-glass__bend"></div>
+        <div className="liquid-glass__face"></div>
+        <div className="liquid-glass__edge"></div>
+    </div>
+);
+
 export default function ItemGrid() {
     // 1. Data Layer
     const { products, categories, status, error } = useCatalogItems();
@@ -13,6 +21,7 @@ export default function ItemGrid() {
         activeCategory,
         handleCategoryChange,
         sectionRef,
+        headerRef,
         titleRef,
         optionsRef
     } = useItemGridAnimations("all items");
@@ -46,29 +55,36 @@ export default function ItemGrid() {
         >
             <div className="item-grid__container">
                 
-                <header className="item-grid__header-row">
-                    <h2 
-                        ref={titleRef}
-                        className="item-grid__title-active"
-                        data-category={activeCategory} 
-                    >
-                        {activeCategory}
-                    </h2>
+                <header ref={headerRef} className="item-grid__header-row">
+                    
+                    <DockGlassLayer/>
 
-                    <nav className="item-grid__filter-nav mono" aria-label="Catalog categories">
-                        {availableCategories.map((cat) => (
-                            <button 
-                                key={cat}
-                                ref={(el) => optionsRef.current.set(cat, el)}
-                                className="item-grid__filter-btn"
-                                onClick={() => handleCategoryChange(cat)}
-                                aria-label={`Filter by ${cat}`}
-                                aria-pressed={activeCategory === cat}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </nav>
+                    <div className="item-grid__title-wrapper">
+                        <h2 
+                            ref={titleRef}
+                            className="item-grid__title-active"
+                            data-category={activeCategory} 
+                        >
+                            {activeCategory}
+                        </h2>
+                    </div>
+                    
+                    <div className="item-grid__nav-wrapper">
+                        <nav className="item-grid__filter-nav mono" aria-label="Catalog categories">
+                            {availableCategories.map((cat) => (
+                                <button 
+                                    key={cat}
+                                    ref={(el) => optionsRef.current.set(cat, el)}
+                                    className="item-grid__filter-btn"
+                                    onClick={() => handleCategoryChange(cat)}
+                                    aria-label={`Filter by ${cat}`}
+                                    aria-pressed={activeCategory === cat}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
                 </header>
 
                 <div className="item-grid__grid" role="list">

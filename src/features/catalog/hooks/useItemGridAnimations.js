@@ -12,7 +12,8 @@ export const useItemGridAnimations = (initialCategory = "all items") => {
 
     // Structural Refs
     const sectionRef = useRef(null);
-    const titleRef = useRef(null);
+    const headerRef  = useRef(null);
+    const titleRef   = useRef(null);
     const optionsRef = useRef(new Map());
 
     // Animation State tracking
@@ -27,6 +28,21 @@ export const useItemGridAnimations = (initialCategory = "all items") => {
     // --- 1. HANDLE CATEGORY CLICK (Trigger FLIP Start) ---
     const handleCategoryChange = (newCategory) => {
         if (activeCategory === newCategory || isAnimating.current) return;
+
+        // --- Smart Scroll Correction ---
+        // Prevents the browser from violently snapping the page when a large category switches to a small one
+        if(sectionRef.current){
+            const triggerY = 64;
+            const rect = sectionRef.current.getBoundingClientRect();
+            const absoluteTop = rect.top + window.scrollY;
+
+            if(window.scrollY > absoluteTop - triggerY){
+                window.scrollTo({
+                    top: absoluteTop - triggerY + 50,
+                    behavior: 'smooth'
+                });
+            }
+        }
 
         const titleEl = titleRef.current;
         const targetBtnEl = optionsRef.current.get(newCategory);
@@ -101,35 +117,51 @@ export const useItemGridAnimations = (initialCategory = "all items") => {
         const timer = setTimeout(() => {
             isAnimating.current = false;
             oldTitleAsBtnEl.style.zIndex = '';
+
+            newTitleEl.style.transition = '';
+            oldTitleAsBtnEl.style.transition = '';
+
             flipState.current = {};
         }, 600);
 
         return () => clearTimeout(timer);
     }, [activeCategory]);
 
-    // --- 3. PARALLAX SCROLL EFFECT ---
+    // --- 3. 2-PHASE SCROLL EFFECT ---
     useEffect(() => {
         let ticking = false;
 
-        const updateParallax = () => {
-            if (!sectionRef.current || !titleRef.current || isAnimating.current) return;
+        const updateScrollEffects = () => {
+            if (!sectionRef.current || !titleRef.current || !headerRef.current || isAnimating.current) return;
             if (window.innerWidth <= 768) return;
 
             const rect = sectionRef.current.getBoundingClientRect();
-            
-            if (rect.top <= window.innerHeight && rect.bottom >= 0) {
+            const triggerY = 64;
+
+            // PHASE 1: Parallax Slide-in (Before it hits the top)
+            if (rect.top > triggerY) {
                 // Pin the title to 0 if it tries to move down, creating a locking effect
-                let translateY = rect.top * -0.2;
+                let translateY = (rect.top - triggerY) * -0.2;
                 if (translateY > 0) translateY = 0;
 
                 titleRef.current.style.transform = `translate3d(0, ${translateY}px, 0)`;
+                headerRef.current.style.setProperty('--shrink-progress', '0');
+            }
+
+            // PHASE 2: Sticky Layout Morph (After it hits the top)
+            else{
+                titleRef.current.style.transform = 'translate3d(0, 0, 0)';
+
+                const distance = 50; // Pixels required to complete the shrink layout
+                let progress = Math.min(1, (triggerY - rect.top) / distance);
+                headerRef.current.style.setProperty('--shrink-progress', progress.toFixed(3));
             }
         };
 
         const onScroll = () => {
             if (!ticking) {
                 window.requestAnimationFrame(() => {
-                    updateParallax();
+                    updateScrollEffects();
                     ticking = false;
                 });
                 ticking = true;
@@ -144,6 +176,7 @@ export const useItemGridAnimations = (initialCategory = "all items") => {
         activeCategory,
         handleCategoryChange,
         sectionRef,
+        headerRef,
         titleRef,
         optionsRef
     };
