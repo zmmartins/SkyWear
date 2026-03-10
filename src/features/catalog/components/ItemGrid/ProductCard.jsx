@@ -58,7 +58,7 @@ export default function ProductCard({ product }) {
                 />
                 
                 <p className="item-grid__price mono">
-                    ${product.price.toFixed(2)}
+                    ${product.price.toFixed(2)} / day
                 </p>
 
                 <button

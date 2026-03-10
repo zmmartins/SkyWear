@@ -17,11 +17,11 @@ export default function ItemGrid() {
         optionsRef
     } = useItemGridAnimations("all items");
 
-    // 3. Derived State (Memoized for performance)
+    // 3. Derived State (Memorized for performance)
     const filteredProducts = useMemo(() => {
         return activeCategory === "all items"
             ? products
-            : products.filter(product => product.type === activeCategory);
+            : products.filter(product => product.rootType === activeCategory);
     }, [products, activeCategory]);
 
     const availableCategories = useMemo(() => {
