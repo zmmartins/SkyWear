@@ -362,6 +362,173 @@
     pointer-events: auto;
 }
 
+.item-grid__cart-badge{
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+
+    background-color: var(--color-accent, #f97316);
+    color: #ffffff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+
+    border: none;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.5, 1.5, 0.4, 1), box-shadow 0.2s ease;
+
+    animation: badge-pop 0.4s cubic-bezier(0.25, 1.5, 0.5, 1);
+}
+
+.item-grid__cart-badge:hover{
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
+}
+
+@keyframes badge-pop{
+    0% { transform: scale(0.5); opacity: 0; }
+    100%{ transform: scale(1); opacity: 1; }
+}
+
+.item-grid__badge-logo{
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    background-color: #ffffff;
+
+    mask-image: url("../../../../assets/logo.png");
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-image: url("../../../../assets/logo.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+.item-grid__orb-logo{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 48px;
+    height: 48px;
+
+    background-color: currentColor;
+    color: #ffffff;
+
+    mask-image: url('../../../../assets/logo.png');
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-image: url('../../../../assets/logo.png');
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+
+    animation: orb-icon-sequence 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes orb-icon-sequence{
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+        color: #ffffff;
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+        color: #ffffff;
+    }
+    65% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+        color: #ffffff;
+    }
+
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.4);
+        color: var(--color-accent, #f97316);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+        color: #ffffff;
+    }
+}
+
+/* ==========================================================================
+   PARTICLE ANIMATIONS (Appended to the bottom)
+   ========================================================================== */
+
+.item-grid__orb-particles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* Sits just behind the logo (which is z-index 20) */
+    z-index: 15; 
+}
+
+.item-grid__orb-particles span {
+    position: absolute;
+    /* Small, punchy dots */
+    width: 6px; 
+    height: 6px;
+    background-color: var(--color-accent, #f97316);
+    border-radius: 50%;
+    /* Offsets to perfectly center the dot relative to the wrapper */
+    top: -3px; 
+    left: -3px; 
+    opacity: 0;
+    
+    /* Tied to the exact same 0.7s duration as the parent orb and logo */
+    animation: orb-particle-sequence 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* The Sequenced Particle Collapse */
+@keyframes orb-particle-sequence {
+    /* 0%: Start hidden at the exact center */
+    0% {
+        transform: rotate(var(--angle)) translateY(0) scale(0);
+        opacity: 0;
+    }
+    
+    /* 20%: Shoot outward as the logo fades in */
+    20% {
+        /* We multiply by -1 so they shoot outward in a perfect circle */
+        transform: rotate(var(--angle)) translateY(calc(var(--dist) * -1)) scale(1);
+        opacity: 1;
+    }
+    
+    /* 55%: Float slightly further out, creating suspension */
+    55% {
+        transform: rotate(var(--angle)) translateY(calc((var(--dist) * -1) - 5px)) scale(1.2);
+        opacity: 1;
+    }
+    
+    /* 75%: violently suck back into the center (Scale 0) right before the logo pops at 80% */
+    75% { 
+        transform: rotate(var(--angle)) translateY(0) scale(0);
+        opacity: 0;
+    }
+    
+    /* 100%: Stay hidden */
+    100% {
+        transform: rotate(var(--angle)) translateY(0) scale(0);
+        opacity: 0;
+    }
+}
 
 /* 6. PRODUCT CARD: DETAILS (Below Image)
    -------------------------------------------------------------------------- */
