@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
+import { useLocation } from "react-router-dom";
 import { useItemGridAnimations } from '../../hooks/useItemGridAnimations';
 import { useCatalogItems } from '../../hooks/useCatalogItems';
 import ProductCard from './ProductCard';
@@ -15,7 +16,8 @@ const DockGlassLayer = () => (
 export default function ItemGrid() {
     // 1. Data Layer
     const { products, categories, status, error } = useCatalogItems();
-    
+    const location = useLocation();
+
     // 2. Animation & Interaction Layer
     const {
         activeCategory,
@@ -26,7 +28,27 @@ export default function ItemGrid() {
         optionsRef
     } = useItemGridAnimations("all items");
 
-    // 3. Derived State (Memorized for performance)
+    // 3. Smart hash scrolling 
+    // waits for the API to finish before attempting to scroll.
+    useEffect(() => {
+        if (status === "ready" && location.hash === "#catalog"){
+            setTimeout(() => {
+                const catalogSection = document.getElementById("catalog");
+                if(catalogSection){
+
+                    document.documentElement.dataset.navScrolling = "true";
+                    if(window.navScrollTimeout) clearTimeout(window.navScrollTimeout);
+                    window.navScrollTimeout = setTimeout(() => {
+                        document.documentElement.dataset.navScrolling = "false";
+                    }, 1200);
+                    
+                    catalogSection.scrollIntoView({ behavior: "smooth" });
+                }
+            }, 100);
+        }
+    }, [status, location.hash]);
+
+    // 4. Derived State (Memorized for performance)
     const filteredProducts = useMemo(() => {
         return activeCategory === "all items"
             ? products
@@ -37,13 +59,13 @@ export default function ItemGrid() {
         return categories.filter(cat => cat !== activeCategory);
     }, [categories, activeCategory]);
 
-    // 4. Conditional Rendering (Handling Async States)
+    // 5. Conditional Rendering (Handling Async States)
     if (status === 'loading') {
         return <section className="item-grid item-grid--loading" aria-busy="true">Loading catalog...</section>;
     }
 
     if (status === 'error') {
-        return <section className="item-grid item-grid--error">{error}</section>;
+        return <section id="catalog" className="item-grid item-grid--error">{error}</section>;
     }
 
     return (
@@ -52,6 +74,7 @@ export default function ItemGrid() {
             className="item-grid" 
             aria-label="Product Catalog"
             data-nav-text="dark"
+            id="catalog"
         >
             <div className="item-grid__container">
                 

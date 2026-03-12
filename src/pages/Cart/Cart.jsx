@@ -17,6 +17,17 @@ export default function Cart() {
             className="cart-page content-section"
             data-nav-text="light"
         >
+
+            <button
+                className="cart-page__back-btn"
+                onClick={() => navigate('/#catalog')}
+                aria-label="Go back to catalog"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 5l-7 7 7 7" />
+                </svg>
+
+            </button>
             <header className="cart-page__header">
                 <h2>Your Suitcase</h2>
                 <p className="text-muted mono">Review your travel wardrobe</p>

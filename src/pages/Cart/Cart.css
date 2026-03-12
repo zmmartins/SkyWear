@@ -2,6 +2,26 @@
     padding-top: calc(var(--navbar-height) + 4rem);
 }
 
+.cart-page__back-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 2rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.cart-page__back-btn:hover{
+    color: var(--color-accent, #f97316);
+    transform: translateX(-5px);
+}
+
+
 .cart-page__header {
     margin-bottom: 3rem;
     border-bottom: 1px solid var(--color-border);
