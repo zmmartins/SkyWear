@@ -5,9 +5,6 @@
 .landing-hero {
     position: relative;
     width: 100%;
-    
-    /* Fallback to dvh for mobile browsers with dynamic search bars */
-    height: 100vh; 
     height: 100dvh; 
     
     margin-top: calc(-1 * var(--navbar-height));
@@ -18,9 +15,6 @@
     z-index: 10;
 }
 
-/* --- LAYER 5: NAVBAR SHIELD --- 
-   Prevents expanding shapes from creating visual artifacts behind the Navbar blur.
-*/
 .landing-hero__navbar-shield {
     position: absolute;
     top: 0;
@@ -34,6 +28,7 @@
 /* --- LAYER 2: THE ACCENT CIRCLE --- */
 .landing-hero__accent-circle {
     position: absolute;
+    /* Vertically shifted down by half the navbar height */
     top: calc(50% + calc(var(--navbar-height) / 2));
     left: 50%;
 
@@ -41,13 +36,13 @@
     height: 80vmin;
     background-color: var(--color-accent); 
     border-radius: 50%;
-    z-index: 2; /* Updated to match layer hierarchy */
+    z-index: 2; 
     pointer-events: none;
 
-    /* OPTIMIZED: Using translate3d forces GPU hardware acceleration */
+    /* Increased multiplier to 6 so it fully engulfs extreme ultrawide screens */
     transform:
         translate3d(-50%, -50%, 0)
-        scale(calc(1 + (var(--scroll-progress, 0) * 4)));
+        scale(calc(1 + (var(--scroll-progress, 0) * 6)));
 
     will-change: transform;
 }
@@ -55,7 +50,7 @@
 /* --- LAYER 1 & 3: THE DOT PATTERNS --- */
 .landing-hero__dots-layer {
     position: absolute;
-    inset: var(--navbar-height) 0 0 0; /* Shorthand for top, right, bottom, left */
+    inset: var(--navbar-height) 0 0 0; 
     z-index: 1;
     
     background-image: radial-gradient(var(--color-accent) 2px, transparent 2px);
@@ -67,18 +62,23 @@
     background-image: radial-gradient(#ffffff 2px, transparent 2px);
     z-index: 3; 
     
-    /* Synchronizes perfectly with the scaling math of the accent circle */
-    clip-path: circle(calc(40vmin * (1 + (var(--scroll-progress, 0) * 4))) at center);
+    /* FIX: Anchored the clip-path exactly to the offset center of the orange circle */
+    clip-path: circle(
+        calc(40vmin * (1 + (var(--scroll-progress, 0) * 6))) 
+        at 50% 50%
+    );
     will-change: clip-path;
 }
 
-/* --- LAYER 4: THE SVG STENCIL --- */
+/* --- LAYER 4: THE SVG STENCILS --- */
 .landing-hero__stencil {
     position: absolute;
-    inset: var(--navbar-height) 0 0 0;
-    z-index: 4; 
+    top: var(--navbar-height);
+    left: 0;
     width: 100%;
-    height: 100%;
+    /* FORCE the SVG to physically stretch the remaining height of the screen */
+    height: calc(100dvh - var(--navbar-height)); 
+    z-index: 4; 
     pointer-events: none;
 }
 
@@ -86,6 +86,11 @@
     font-family: var(--font-sans); 
     text-transform: uppercase;
     letter-spacing: -0.05em; 
+}
+
+/* Mobile Stencil hidden by default */
+.landing-hero__stencil--mobile {
+    display: none;
 }
 
 /* --- LAYER 6: THE FOREGROUND CONTENT --- */
@@ -106,8 +111,10 @@
 .landing-hero__line {
     font-family: var(--font-sans);
     font-weight: 800; 
-    font-size: clamp(3rem, 9vw, 9rem); 
-    line-height: 0.9;
+    
+    /* FLUID TYPOGRAPHY: Pure VW ensures it never stops scaling with the window */
+    font-size: 8.5vw; 
+    line-height: 0.85;
     letter-spacing: -0.04em;
     text-transform: uppercase;
     
@@ -121,10 +128,9 @@
     animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* OPTIMIZED: Using translate3d for the scroll-driven flying text */
 .landing-hero__line--top {
     text-align: left;
-    max-width: 12ch;
+    /* Removed max-width constraints so it respects fluid VW scaling */
     transform: translate3d(calc(var(--scroll-progress, 0) * -120vw), 0, 0);
 }
 .landing-hero__line--top span { animation-delay: 0.1s; }
@@ -132,7 +138,6 @@
 .landing-hero__line--bottom {
     text-align: right;
     align-self: flex-end;
-    max-width: 14ch;
     transform: translate3d(calc(var(--scroll-progress, 0) * 160vw), 0, 0);
 }
 .landing-hero__line--bottom span { animation-delay: 0.3s; }
@@ -142,11 +147,21 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* --- RESPONSIVE BREAKPOINTS --- */
 @media (max-width: 768px) {
+    /* Swap the stencils */
+    .landing-hero__stencil--desktop { display: none; }
+    .landing-hero__stencil--mobile { display: block; }
+
     .landing-hero__content {
         padding-top: calc(var(--navbar-height) + 3rem);
         padding-left: 1.5rem;
         padding-right: 1.5rem;
         padding-bottom: 2rem;
+    }
+    
+    .landing-hero__line {
+        /* Bump up the VW ratio so it occupies full width on narrow screens */
+        font-size: 13vw; 
     }
 }

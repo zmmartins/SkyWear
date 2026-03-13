@@ -1,0 +1,15 @@
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  /* Uses dvh to account for mobile URL bars shrinking/growing */
+  min-height: 100dvh; 
+}
+
+.main-layout__content {
+  flex: 1; /* Forces the main content area to expand and fill available vertical space */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* Creates a new stacking context so page z-indexes don't fight the Navbar */
+  z-index: 1; 
+}

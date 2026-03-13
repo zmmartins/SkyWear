@@ -2,22 +2,17 @@
   height: var(--navbar-height);
   display: flex;
   align-items: center;
-  padding: 0 2rem;
-  
-  /* REMOVED backdrop-filter from here */
+  /* Use fluid spacing token for side padding */
+  padding: 0 var(--space-md);
   
   position: sticky;
   top: 0;
   z-index: 50; 
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  color: var(--navbar-text-color, #ffffff); 
+  /* Fallback color if the dynamic hook hasn't fired yet */
+  color: var(--navbar-text-color, var(--color-text)); 
   transition: color 0.3s linear; 
 }
 
-/* NEW: Dedicated background layer.
-  By placing the frosted blur here, we prevent it from trapping
-  the backdrop-filters of the buttons inside the navbar.
-*/
 .navbar__bg {
   position: absolute;
   inset: 0;
@@ -25,6 +20,8 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   pointer-events: none;
+  /* Subtle border to separate the glass from the content below */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* --- COLUMN LAYOUT --- */
@@ -34,10 +31,11 @@
 }
 
 .navbar__col--left {
-  flex: 1;
+  flex: 1 1 0%; /* Allows column to shrink on tiny screens */
   justify-content: flex-start;
   align-items: flex-start; 
   align-self: flex-start; 
+  /* This calculation still works perfectly with fluid clamp() variables! */
   margin-top: calc((var(--navbar-height) - 37px) / 2); 
 }
 
@@ -46,7 +44,7 @@
 }
 
 .navbar__col--right {
-  flex: 1;
+  flex: 1 1 0%; /* Allows column to shrink on tiny screens */
   justify-content: flex-end;
 }
 
@@ -55,14 +53,16 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-size: 1.25rem;
+  /* Fluid logo sizing to prevent mobile text wrapping */
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
   color: inherit;
+  white-space: nowrap;
 }
 
 .navbar__actions {
   display: flex;
   align-items: center;
-  gap: 1rem; 
+  gap: clamp(0.5rem, 1.5vw, 1rem); /* Fluid gap */
 }
 
 /* ==========================================================================
@@ -79,11 +79,6 @@
   border-radius: 24px; 
   background: transparent;
   border: none;
-  
-  /* THE POP/SPRING EFFECT:
-     This bouncy cubic-bezier creates the "bubble popping open" physics 
-     when the button is released from a click or when the dropdown expands.
-  */
   transition: all 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
 }
 
@@ -92,7 +87,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0px 16px;
+  padding: 0px clamp(10px, 1.5vw, 16px);
   height: 37px; 
   line-height: 1;
   font-family: inherit;
@@ -116,15 +111,12 @@
    THE SQUISH EFFECT (Click State)
    ========================================================================== */
 
-/* When the user presses the mouse down, compress the button deeply and quickly.
-  When released, the 0.4s bouncy transition above takes over.
-*/
 .btn-text:active, 
 .btn-cart:active,
 .navbar__context-menu-wrapper:not(.is-open):active,
 .navbar__context-menu-wrapper:active {
   transform: scale(0.85); 
-  transition: transform 0.1s ease-out; /* Fast, immediate compression */
+  transition: transform 0.1s ease-out; 
 }
 
 /* ==========================================================================
@@ -144,7 +136,6 @@
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
-
   transition: color 0.3s ease, transform 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
 }
 
@@ -158,7 +149,6 @@
   position: relative;
   top: 1px; 
   display: inline-block;
-
   transition: color 0.3s ease, transform 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
 }
 
@@ -184,9 +174,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 0 16px;
-  
-  /* FIXED: Height strictly forced to match the 37px buttons */
+  padding: 0 clamp(10px, 1.5vw, 16px);
   height: 37px; 
   line-height: 1;
   font-family: inherit;
@@ -208,8 +196,6 @@
   position: relative;
   z-index: 5;
   overflow: hidden;
-  
-  /* Syncs the height expansion with the physical bouncy pop of the wrapper */
   transition: grid-template-rows 0.4s cubic-bezier(0.5, 1.5, 0.4, 1),
               opacity 0.3s ease;
 }
@@ -237,13 +223,11 @@
   appearance: none;
   background: transparent;
   border: none;
-
-  padding: 0px 16px;
+  padding: 0px clamp(10px, 1.5vw, 16px);
   height: 37px;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-
   line-height: 1;
   text-align: left;
   font-family: inherit;
@@ -252,20 +236,15 @@
   white-space: nowrap;
   color: inherit;
   cursor: pointer;
-
   position: relative;
   z-index: 10;
   border-radius: 24px;
-  
   transition: all 0.4s cubic-bezier(0.5, 1.5, 0.4, 1);
 }
 
-@media (max-width: 768px) {
-  .navbar { padding: 0 1rem; }
-  
+/* Extremely small devices */
+@media (max-width: 400px) {
   .btn-text, .btn-cart, .navbar__context-menu, .navbar__modal-btn {
-    padding-left: 16px;
-    padding-right: 16px;
-    font-size: 0.75rem;
+    font-size: 0.7rem; /* Shrink text slightly to fit */
   }
 }

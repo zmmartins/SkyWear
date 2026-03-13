@@ -4,14 +4,11 @@
 
 .scroll-reveal {
     /* 1. LAYOUT & TIMING */
-    /* 150vh Total Track Height = 
-       100vh (Sticky Camera Viewport) + 50vh (Actual Scrollable Distance for Animation)
-    */
-    height: 150vh; 
+    /* Upgraded to dvh to prevent layout shifts on mobile browsers */
+    height: 150dvh; 
     position: relative;
     z-index: 10;
     
-    /* Pull up directly behind the translucent Navbar */
     margin-top: calc(-1 * var(--navbar-height));
     overflow: visible; 
 }
@@ -22,8 +19,7 @@
     top: 0;
     width: 100%;
     
-    /* Fallback to dvh for mobile browsers with dynamic search bars */
-    height: 100vh;
+    height: 100vh; /* Fallback */
     height: 100dvh; 
     
     overflow: hidden; 
@@ -32,26 +28,23 @@
 /* THE LAYERS */
 .scroll-reveal__layer {
     position: absolute;
-    inset: 0; /* Shorthand for top:0, left:0, width:100%, height:100% */
+    inset: 0; 
     display: block;
     margin: 0;
     padding: 0;
 }
 
-/* Fix for nested component margin collapse */
 .scroll-reveal__layer > * {
     margin-top: 0 !important;
 }
 
-/* Layer 1: Base (Bottom, e.g., LandingHero) */
 .scroll-reveal__layer--base {
     z-index: 1;
 }
 
-/* Layer 2: Reveal (Top, e.g., BundlesCarousel) */
 .scroll-reveal__layer--reveal {
     z-index: 2;
-    /* Hardware acceleration hint for the expanding circle */
     will-change: clip-path;
-    clip-path: circle(0% at 50% 50%);
+    /* Initialize slightly larger than 0 to prevent rendering artifacts */
+    clip-path: circle(0.1% at 50% 50%);
 }

@@ -1,4 +1,5 @@
 import Navbar from "@/layouts/Navbar";
+import "./MainLayout.css"; // We will create this small file!
 
 /**
  * MainLayout serves as the root structural wrapper for the application.
@@ -13,7 +14,8 @@ const MainLayout = ({ children }) => {
         <div className="main-layout">
             <Navbar />
 
-            <main>
+            {/* The main tag is set to flex-grow so it pushes the footer down */}
+            <main className="main-layout__content">
                 {children}
             </main>
             
