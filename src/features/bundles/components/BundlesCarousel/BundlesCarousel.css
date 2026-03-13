@@ -9,31 +9,20 @@
    6. Clothing Stack (Explosion Animation)
    7. Controls (Arrows, Dots)
    8. Animation Keyframes
+   9. Device Interaction Rules (Touch vs Mouse)
+   10. Screen Size Rules (Layout Reflows)
    ========================================================================== */
 
 /* 1. CONFIGURATION & LAYERS
    -------------------------------------------------------------------------- */
 .bundles-carousel {
-    /* Animation Timing */
     --slide-transition-ms: 800ms;
     --orb-hover-ease: cubic-bezier(0.25, 0.8, 0.4, 1);
     
-    /* Theme Colors (Default: Winter) */
     --bc-dot-color: #6a94d4;
     --bc-dot-glow: rgba(106, 148, 212, 0.35);
-
-    /* Layer Map (Z-Index Reference)
-       0  : Base Context
-       1  : Track / Stack Items
-       5  : Exiting Slide
-       9  : Active Slide
-       10 : Orb Art
-       11 : Info Panel
-       20 : Controls (Arrows/Dots)
-    */
 }
 
-/* Theme Overrides */
 .bundles-carousel[data-theme="winter"] {
     --bc-dot-color: #6a94d4;
     --bc-dot-glow: rgba(106, 148, 212, 0.35);
@@ -49,8 +38,7 @@
 .bundles-carousel {
     position: relative;
     width: 100%;
-    height: 100vh;
-    /* Pull up behind navbar */
+    height: 100dvh; 
     margin-top: calc(-1 * var(--navbar-height)); 
     z-index: 0;
     background: transparent;
@@ -65,7 +53,6 @@
     height: 100%;
     z-index: 1;
     overflow: hidden;
-    /* Performance: isolate layout calculations */
     contain: layout paint; 
 }
 
@@ -105,14 +92,12 @@
     contain: layout paint;
 }
 
-/* State: Active (Visible & Interactive) */
 .carousel__slide.is-active {
     opacity: 1;
     z-index: 9;
     pointer-events: auto;
 }
 
-/* State: Exiting (Visible but waiting to fade) */
 .carousel__slide.is-exiting {
     opacity: 1;
     z-index: 5;
@@ -121,7 +106,6 @@
 
 .carousel__slide.is-hidden { display: none; }
 
-/* Slide Backgrounds */
 .slide-bg {
     position: absolute;
     inset: 0;
@@ -131,23 +115,11 @@
 }
 
 .slide-bg[data-theme="winter"] {
-    background: radial-gradient(
-        circle at top,
-        #dff3ff 0%,
-        #b7d8f5 35%,
-        #8bb8e8 70%,
-        #6a94d4 100%
-    );
+    background: radial-gradient(circle at top, #dff3ff 0%, #b7d8f5 35%, #8bb8e8 70%, #6a94d4 100%);
 }
 
 .slide-bg[data-theme="summer"] {
-    background: radial-gradient(
-        circle at top,
-        #ffe9b5 0%,
-        #ffd08a 30%,
-        #ffac6f 65%,
-        #ff8e4f 100%
-    );
+    background: radial-gradient(circle at top, #ffe9b5 0%, #ffd08a 30%, #ffac6f 65%, #ff8e4f 100%);
 }
 
 /* 4. CONTENT (INFO PANEL)
@@ -157,9 +129,9 @@
     z-index: 11;
     pointer-events: auto;
     
-    top: calc(6rem + var(--navbar-height));
-    left: 4rem;
-    max-width: 450px;
+    top: 35vh;
+    left: clamp(2rem, 8vw, 12rem);
+    width: clamp(280px, 30vw, 500px);
     
     display: flex;
     flex-direction: column;
@@ -167,26 +139,17 @@
     text-align: left;
     color: white;
     
-    /* Responsive movement */
     transition: left 0.35s ease, top 0.35s ease; 
 }
 
-/* Laptop Adjustment */
-@media (min-width: 1024px) and (max-width: 1199px) {
-    .carousel__info {
-        left: 2rem;
-        top: calc(4rem + var(--navbar-height));
-    }
-}
-
 .carousel__badge {
-    font-size: 0.75rem;
+    font-size: clamp(0.7rem, 1vw, 0.85rem);
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 .carousel__title {
-    font-size: clamp(2.5rem, 2rem + 2vw, 4rem);
+    font-size: clamp(2.5rem, 4vw, 5rem);
     line-height: 1.1;
     text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     margin: 0.25rem 0;
@@ -197,7 +160,7 @@
     align-items: center;
     gap: 0.5rem;
     margin: 0.25rem 0 1rem;
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 1.2vw, 1.1rem);
 }
 
 .carousel__pieces {
@@ -211,15 +174,35 @@
 .carousel__meta-dot { opacity: 0.6; }
 .carousel__price { font-weight: 600; }
 
+/* --- THE HOVER TRICK FOR DESKTOP META VISIBILITY --- */
+@media (hover: hover) and (pointer: fine) {
+    /* Hide the meta info by default on devices with a mouse */
+    .carousel__meta {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.35s ease, transform 0.35s ease;
+        pointer-events: none;
+    }
+
+    /* Use modern :has() to detect when the art sibling is hovered */
+    .carousel__layout:has(.carousel__art:hover) .carousel__meta {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+}
+
+
 /* 5. THE ORB (ART & GLASS EFFECT)
    -------------------------------------------------------------------------- */
 .carousel__art {
     position: relative;
     z-index: 10;
     pointer-events: auto;
-    width: min(320px, 70vw);
+    
+    width: clamp(260px, 25vw, 450px);
     aspect-ratio: 3/5;
-    isolation: isolate; /* Create new stacking context for glass */
+    isolation: isolate; 
 
     --glass-strength: 0;
     transition: --glass-strength 0.35s ease;
@@ -230,7 +213,6 @@
     cursor: pointer;
 }
 
-/* Floating Orb Background Ring */
 .carousel__art-extra-orb {
     position: absolute;
     top: 50%;
@@ -252,7 +234,6 @@
     opacity: 1;
 }
 
-/* Liquid Glass Layers (Pseudo-elements) */
 .carousel__art::before,
 .carousel__art::after {
     content: "";
@@ -269,7 +250,6 @@
     transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease;
 }
 
-/* Outer Glass Layer */
 .carousel__art::before {
     height: 100%;
     aspect-ratio: 1/1;
@@ -279,7 +259,6 @@
         radial-gradient(circle at 50% 50%, rgba(56, 189, 248, calc(var(--glass-strength) * 0.4)) 0%, rgba(37, 99, 235, calc(var(--glass-strength) * 0.25)) 40%, transparent 80%);
 }
 
-/* Inner Core Layer */
 .carousel__art::after {
     height: 70%;
     aspect-ratio: 1/1;
@@ -289,7 +268,6 @@
         radial-gradient(circle at 50% 50%, rgba(56, 189, 248, calc(var(--glass-strength) * 0.35)) 0%, transparent 90%);
 }
 
-/* Glass Active States */
 .carousel__slide.is-active .carousel__art::before,
 .carousel__slide.is-active .carousel__art::after {
     opacity: 1;
@@ -297,7 +275,6 @@
     transition-delay: 0.3s;
 }
 
-/* Glass Hover States (Breathing effect) */
 .carousel__slide.is-active .carousel__art:hover::before,
 .carousel__slide.is-active .carousel__art:hover::after {
     transition-delay: 0s;
@@ -347,7 +324,6 @@
 .alt-item { opacity: 0; }
 .carousel__art:hover .alt-item { opacity: 1; }
 
-/* Item Positions */
 .clothing-piece--beanie  { top: 0; height: 10%; }
 .clothing-piece--hat     { top: 2%; height: 9%; }
 .clothing-piece--jacket  { top: 10%; height: 40%; }
@@ -358,36 +334,29 @@
 .clothing-piece--shorts  { top: 43%; height: 27%; }
 .clothing-piece--pants   { top: 45%; height: 55%; }
 
-/* Animation Delays */
 .alt-outer-top-l-1 { transition-delay: 10ms; }
 .alt-outer-top-l-2 { transition-delay: 5ms;  }
 .alt-outer-top-r-1 { transition-delay: 70ms; }
 .alt-outer-top-r-2 { transition-delay: 35ms; }
-
 .alt-bottom-r-1 { transition-delay: 15ms; }
 .alt-bottom-r-2 { transition-delay: 8ms; }
 .alt-bottom-l-1 { transition-delay: 20ms; }
 .alt-bottom-l-2 { transition-delay: 10ms; }
-
 .alt-base-top-l-1 { transition-delay: 30ms; }
 .alt-base-top-l-2 { transition-delay: 15ms; }
 .alt-base-top-r-1 { transition-delay: 50ms; }
 .alt-base-top-r-2 { transition-delay: 25ms; }
-
 .alt-head-l { transition-delay: 80ms;  }
 .alt-head-r { transition-delay: 100ms; }
 
-/* Hover Transformations (Explosion) */
-/* Group 1: Fly Left/Up */
-.carousel__art:hover .alt-outer-top-l-1 { transform: translate(-100px, -20px) rotate(-20deg); }
-.carousel__art:hover .alt-base-top-l-1 { transform: translate(-100px, 30px) rotate(-30deg); }
-.carousel__art:hover .alt-head-l    { transform: translate(-70px, 20px) rotate(-30deg); }
-.carousel__art:hover .alt-bottom-l-1  { transform: translate(-100px); }
+.carousel__art:hover .alt-outer-top-l-1 { transform: translate(-40%, -8%) rotate(-20deg); }
+.carousel__art:hover .alt-base-top-l-1  { transform: translate(-40%, 12%) rotate(-30deg); }
+.carousel__art:hover .alt-head-l        { transform: translate(-30%, 8%) rotate(-30deg); }
+.carousel__art:hover .alt-bottom-l-1    { transform: translate(-45%); }
 
-/* Group 2: Fly Right/Up */
-.carousel__art:hover .alt-outer-top-r-1 { transform: translate(100px, -20px) rotate(20deg); }
-.carousel__art:hover .alt-base-top-r-1 { transform: translate(100px, 30px) rotate(30deg); }
-.carousel__art:hover .alt-bottom-r-1 { transform: translate(100px); }
+.carousel__art:hover .alt-outer-top-r-1 { transform: translate(40%, -8%) rotate(20deg); }
+.carousel__art:hover .alt-base-top-r-1  { transform: translate(40%, 12%) rotate(30deg); }
+.carousel__art:hover .alt-bottom-r-1    { transform: translate(45%); }
 
 /* 7. CONTROLS (ARROWS & DOTS)
    -------------------------------------------------------------------------- */
@@ -410,10 +379,7 @@
 .carousel__arrow--next { right: 1rem; }
 .carousel__arrow--prev svg { transform: scaleX(-1); }
 
-.carousel__arrow:hover {
-    color: white;
-    transform: translateY(-50%) scale(1.1);
-}
+.carousel__arrow:hover { color: white; transform: translateY(-50%) scale(1.1); }
 .carousel__arrow:active { transform: translateY(-50%) scale(0.95); }
 
 .carousel__arrow:focus-visible,
@@ -423,7 +389,6 @@
     border-radius: 999px;
 }
 
-/* Dots Sliding Window */
 .carousel__dots {
     position: absolute;
     bottom: 1.4rem;
@@ -452,116 +417,120 @@
     cursor: pointer;
     pointer-events: auto;
     
-    transition:
-        left 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
-        transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
-        width 0.5s ease,
-        height 0.5s ease,
-        opacity 0.5s ease,
-        background-color 0.5s ease;
+    transition: left 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), width 0.5s ease, height 0.5s ease, opacity 0.5s ease, background-color 0.5s ease;
 }
 
-/* Dot Positions (Sliding Window Logic) */
-.carousel__dot[data-pos="0"],
-.carousel__dot[data-pos="2"] {
-    width: 7px;
-    height: 7px;
-    opacity: 0.8;
-    z-index: 1;
-    transform: translate(-50%, -50%);
+.carousel__dot[data-pos="0"], .carousel__dot[data-pos="2"] {
+    width: 7px; height: 7px; opacity: 0.8; z-index: 1; transform: translate(-50%, -50%);
 }
-
 .carousel__dot[data-pos="0"] { left: 18px; }
 .carousel__dot[data-pos="2"] { left: calc(100% - 18px); }
 
-.carousel__dot[data-pos="0"]:hover,
-.carousel__dot[data-pos="2"]:hover {
-    background: rgba(255, 255, 255, 0.5);
-    border-color: white;
+.carousel__dot[data-pos="0"]:hover, .carousel__dot[data-pos="2"]:hover {
+    background: rgba(255, 255, 255, 0.5); border-color: white;
 }
 
 .carousel__dot[data-pos="1"] {
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 14px;
-    height: 14px;
-    opacity: 1;
-    z-index: 10;
-    
-    background: var(--bc-dot-color);
-    border-color: rgba(209, 213, 219, 0.85);
-    box-shadow: 0 0 12px var(--bc-dot-glow);
+    left: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px;
+    opacity: 1; z-index: 10;
+    background: var(--bc-dot-color); border-color: rgba(209, 213, 219, 0.85); box-shadow: 0 0 12px var(--bc-dot-glow);
 }
 
 /* 8. ANIMATIONS
    -------------------------------------------------------------------------- */
+@keyframes circleExpand { 0% { clip-path: circle(0% at 50% 50%); } 100% { clip-path: circle(150% at 50% 50%); } }
+.carousel__slide.is-active .slide-bg { will-change: clip-path; animation: circleExpand 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
 
-/* Background Reveal (Clip Path) */
-@keyframes circleExpand {
-    0%   { clip-path: circle(0% at 50% 50%); }
-    100% { clip-path: circle(150% at 50% 50%); }
-}
+@keyframes fadeInUp { 0% { transform: translateY(40px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+.carousel__slide.is-active .carousel__info { animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: 0.2s; opacity: 0; }
+.carousel__slide.is-exiting .carousel__info { opacity: 0; transition: opacity 0.3s ease; }
 
-.carousel__slide.is-active .slide-bg {
-    will-change: clip-path;
-    animation: circleExpand 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
+@keyframes slideInRight { 0% { transform: translateX(50vw); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+@keyframes slideOutLeft { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(-50vw); opacity: 0; } }
+@keyframes slideInLeft { 0% { transform: translateX(-50vw); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+@keyframes slideOutRight { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(50vw); opacity: 0; } }
 
-/* Info Panel Fade Up */
-@keyframes fadeInUp {
-    0%   { transform: translateY(40px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-}
-
-.carousel__slide.is-active .carousel__info {
-    animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    animation-delay: 0.2s;
-    opacity: 0;
-}
-
-.carousel__slide.is-exiting .carousel__info {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-/* Art Slide Transitions */
-@keyframes slideInRight {
-    0%   { transform: translateX(50vw); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
-}
-@keyframes slideOutLeft {
-    0%   { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(-50vw); opacity: 0; } 
-}
-@keyframes slideInLeft {
-    0%   { transform: translateX(-50vw); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
-}
-@keyframes slideOutRight {
-    0%   { transform: translateX(0); opacity: 1; }
-    100% { transform: translateX(50vw); opacity: 0; } 
-}
-
-/* Apply Slide Animations */
 .slide-enter-from-right .carousel__art { animation: slideInRight var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-.slide-exit-to-left .carousel__art     { animation: slideOutLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-.slide-enter-from-left .carousel__art  { animation: slideInLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-.slide-exit-to-right .carousel__art    { animation: slideOutRight var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-exit-to-left .carousel__art { animation: slideOutLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-enter-from-left .carousel__art { animation: slideInLeft var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-exit-to-right .carousel__art { animation: slideOutRight var(--slide-transition-ms) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-enter-from-right .carousel__art, .slide-enter-from-left .carousel__art, .slide-exit-to-left .carousel__art, .slide-exit-to-right .carousel__art { pointer-events: none; }
 
-/* Pointer Event Management during Animation */
-.slide-enter-from-right .carousel__art,
-.slide-enter-from-left .carousel__art,
-.slide-exit-to-left .carousel__art,
-.slide-exit-to-right .carousel__art {
-    pointer-events: none;
+/* 9. DEVICE INTERACTION RULES (Touch vs Mouse)
+   -------------------------------------------------------------------------- */
+@media (hover: none) and (pointer: coarse) {
+    /* Fully touch devices: Hide arrows regardless of screen size */
+    .carousel__arrow {
+        display: none !important;
+    }
+
+    /* PERMANENT HOVER VISUALS & EXPLOSION (Strictly Touch Devices) */
+    .carousel__art {
+        --glass-strength: 1; /* Permanently active glass */
+        cursor: default;     /* Remove pointer since it's static */
+    }
+
+    .carousel__art-extra-orb {
+        transform: translate(-50%, -50%) scale(1.05);
+        opacity: 1;
+    }
+    
+    .carousel__slide.is-active .carousel__art::before {
+        transform: translate(-50%, -50%) scale(1.03);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(24px) saturate(125%);
+    }
+
+    .carousel__slide.is-active .carousel__art::after {
+        transform: translate(-50%, -50%) scale(1.03);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.5), inset 0 0 16px rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(18px) saturate(150%);
+    }
+
+    .alt-item { opacity: 1 !important; }
+    
+    .carousel__art .alt-outer-top-l-1 { transform: translate(-40%, -8%) rotate(-20deg); }
+    .carousel__art .alt-base-top-l-1  { transform: translate(-40%, 12%) rotate(-30deg); }
+    .carousel__art .alt-head-l        { transform: translate(-30%, 8%) rotate(-30deg); }
+    .carousel__art .alt-bottom-l-1    { transform: translate(-45%); }
+
+    .carousel__art .alt-outer-top-r-1 { transform: translate(40%, -8%) rotate(20deg); }
+    .carousel__art .alt-base-top-r-1  { transform: translate(40%, 12%) rotate(30deg); }
+    .carousel__art .alt-bottom-r-1    { transform: translate(45%); }
 }
 
-/* 9. ACCESSIBILITY
+/* 10. SCREEN SIZE RULES (Layout Reflows)
    -------------------------------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-    .bundles-carousel * {
-        animation: none !important;
-        transition: none !important;
-        scroll-behavior: auto !important;
+@media (max-width: 900px) {
+    /* Structural Reflow for Small Screens (Applies to Desktop & Mobile) */
+    .carousel__layout {
+        flex-direction: column;
+        padding: calc(var(--navbar-height) + 2rem) 1.5rem 6rem 1.5rem;
+        gap: 1.5rem;
     }
+
+    .carousel__info {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        align-items: center;
+        text-align: center;
+        order: -1; 
+    }
+
+    /* Meta text disappears on small screens as requested */
+    .carousel__meta { display: none; }
+
+    /* Shrink orb slightly to fit the screen, 
+       but leave the interaction rules (hover vs permanent) to the device */
+    .carousel__art {
+        width: 45vw; 
+        min-width: 180px;
+        max-width: 250px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bundles-carousel * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
