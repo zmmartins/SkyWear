@@ -6,88 +6,124 @@
     position: relative;
     z-index: 10;
     width: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    min-height: 100dvh;
     background-color: #ffffff; 
-    color: #111827; 
-    padding: 0;
     overflow: hidden; 
+    
+    --scroll-progress: 0;
+    --highlight-color: #000;
 }
 
-.items-banner__container {
-    width: 100%;
-    max-width: var(--max-width-content, 1400px);
-    margin: 0 auto;
-    height: 100vh; 
+.sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+}
+
+/* 1. TYPOGRAPHY (Absolute Anchoring & Ghost Masking)
+   -------------------------------------------------------------------------- */
+.items-banner__typography {
+    position: absolute;
+    inset: 0;
+    top: -28.5vh; 
     display: flex;
     flex-direction: column;
-    justify-content: center; 
+    justify-content: center;
+    align-items: center;
     gap: 0.5rem; 
-    position: relative;
-    padding-top: var(--navbar-height);
-    padding-left: 1rem;
-    padding-right: 1rem;
+    z-index: 4;
+    pointer-events: none;
 }
 
-/* 1. TYPOGRAPHY
-   -------------------------------------------------------------------------- */
-.items-banner__title-top,
-.items-banner__title-bottom {
+.items-banner__typography--base {
+    z-index: 4;
+}
+
+/* DESKTOP/TABLET DEFAULT: Hide the Ghost Layer entirely */
+.items-banner__typography--ghost {
+    display: none; 
+    z-index: 5;
+}
+
+.title-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: clamp(3rem, 11vw, 11vw);
     font-weight: 800;
-    line-height: 0.85;
+    line-height: 0.73;
     letter-spacing: -0.06em;
     text-transform: uppercase;
-    color: #000000;
-    margin: 0;
-    white-space: nowrap; 
-    position: relative;
-    z-index: 2; 
+    white-space: nowrap;
     will-change: transform;
 }
 
-.highlight {
-    color: var(--color-accent, #f97316);
-    will-change: color;
+.title-row--top { transform: translate3d(calc((1 - var(--scroll-progress)) * -40vw), 0, 0); }
+.title-row--bottom { transform: translate3d(calc((1 - var(--scroll-progress)) * 40vw), 0, 0); }
+
+.center-word { position: relative; }
+
+/* The dynamic JS color variable */
+.highlight { color: var(--highlight-color); will-change: color; }
+
+/* The base text is ALWAYS black */
+.text-black { color: #000000; }
+
+/* Solid white for the ghost layer mask inversion */
+.text-white { color: #ffffff; }
+
+/* NEW: Keeps the layout structure in the Ghost Layer without blocking the Base Layer */
+.invisible-anchor { visibility: hidden; pointer-events: none; }
+
+.absolute-left { position: absolute; right: 100%; padding-right: 0.25em; }
+.absolute-right { position: absolute; left: 100%; padding-left: 0.25em; }
+
+/* 2. CENTRAL IMAGE (Restored exact original dimensions)
+   -------------------------------------------------------------------------- */
+.items-banner__central-image {
+    position: absolute;
+    top: calc(var(--navbar-height) + 10px); 
+    bottom: 10px;
+    left: 50%; 
+    transform: translateX(-50%);
+    width: 25vw; 
+    min-width: 280px; 
+    z-index: 0; 
+    pointer-events: none;
+    will-change: transform; 
 }
 
-.items-banner__title-top {
+.items-banner__central-image img {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    display: block;
-    /* Hardware Accelerated X-Axis sliding */
-    transform: translate3d(calc(-9.5vw + var(--scroll-offset-top, 0px)), 0, 0);
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
-.items-banner__row-bottom {
-    display: flex;
-    align-items: flex-end; 
-    justify-content: space-between; 
-    width: 100%;
-    flex-wrap: nowrap; 
-    gap: 2rem;
-    position: relative;
-    z-index: 2;
+.image-base { z-index: 1; }
+.image-blur-overlay {
+    filter: blur(4px);
+    mask-image: radial-gradient(circle at center, transparent 5%, black 65%);
+    -webkit-mask-image: radial-gradient(circle at center, transparent 5%, black 65%);
+    z-index: 2; 
 }
 
-.items-banner__title-bottom {
-    /* Hardware Accelerated X & Y Axis offset */
-    transform: translate3d(calc(2vw + var(--scroll-offset-bottom, 0px)), -280px, 0);
-}
-
-/* 2. TEXT & ARROW BLOCK
+/* 3. INFO BLOCK (Arrow + Text)
    -------------------------------------------------------------------------- */
 .items-banner__info {
+    position: absolute;
+    /* Vertically aligned directly beneath the "BUILD YOUR" row */
+    top: calc(50dvh - 12vh); 
+    /* Mathematically locked to the left of the dynamic image width */
+    right: calc(50% + max(12.5vw, 140px) + 2rem);
+    width: clamp(250px, 25vw, 315px);
     display: flex;
-    align-items: flex-start;
     gap: 1.5rem;
-    flex: 1; 
-    max-width: 315px;
-    min-width: 315px; 
-    position: relative;
-    z-index: 2;
+    z-index: 3;
 }
 
+/* Restored Exact Original Arrow CSS */
 .items-banner__arrow-wrapper {
     height: 400px; 
     width: 24px;
@@ -122,100 +158,106 @@
     color: #4b5563;
     font-weight: 500;
     text-transform: uppercase;
-    transform: translateY(1vw);
+    transform: translateY(1vw); 
 }
 
-/* 3. CENTRAL IMAGE FRAME
+/* 3.5 TABLET REFLOW (950px to 769px)
    -------------------------------------------------------------------------- */
-.items-banner__central-image {
-    position: absolute;
-    top: calc(var(--navbar-height) + 10px); 
-    bottom: 10px;
-    left: 50%; 
-    width: 25vw; 
-    min-width: 280px; 
-    z-index: 0; 
-    pointer-events: none;
-    will-change: transform; 
-}
-
-.items-banner__central-image img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-}
-
-.image-base { z-index: 1; }
-
-.image-blur-overlay {
-    filter: blur(4px);
-    mask-image: radial-gradient(circle at center, transparent 5%, black 65%);
-    -webkit-mask-image: radial-gradient(circle at center, transparent 5%, black 65%);
-    z-index: 2; 
-}
-
-/* RESPONSIVE
-   -------------------------------------------------------------------------- */
-@media (max-width: 1024px) {
-    .items-banner__title-top,
-    .items-banner__title-bottom { font-size: 11vw; }
-}
-
-@media (max-width: 768px) {
-    .items-banner { padding: 4rem 1rem; }
-    
-    .items-banner__container {
-        padding-bottom: 0;
-        justify-content: center;
-        padding-top: 4rem;
-    }
-
-    .items-banner__row-bottom {
-        flex-direction: column; 
-        align-items: flex-start;
-        gap: 1rem;
-        margin-top: 0; 
-        flex-wrap: wrap; 
-    }
-
-    .items-banner__title-top,
-    .items-banner__title-bottom {
-        font-size: 15vw;
-        line-height: 0.9;
-        transform: translate3d(0, 0, 0); 
-        text-align: left;
-    }
-    
-    .items-banner__title-top { width: auto; }
-
+@media (max-width: 950px) and (min-width: 700px) {
     .items-banner__info {
-        max-width: 100%;
-        min-width: auto;
-        padding-bottom: 0;
-        transform: none; 
+        /* Pushes the arrow to the right edge of the container, 
+           which anchors it exactly 2rem away from the central image! */
+        justify-content: center; 
     }
 
-    .items-banner__arrow-wrapper {
-        height: 50px; 
-        transform: rotate(90deg);
-        transform-origin: left top;
-        margin-bottom: 1rem;
+    .items-banner__text {
+        position: absolute;
+        /* Jump across the screen: 100% of info width + 2rem gap + Image width + 2rem gap */
+        left: calc(100% + max(25vw, 280px) + 4rem);
+        
+        /* Drop down exactly the height of one title row plus the 0.5rem gap */
+        top: calc((clamp(3rem, 11vw, 11vw) * 0.73) + 0.5rem);
+        
+        /* Restrict width to the exact available space on the right side of the screen */
+        /* 50vw - half image width - 2rem gap - 1rem safety padding */
+        width: calc(50vw - max(12.5vw, 140px) - 5rem);
+    }
+}
+
+/* 4. RESPONSIVE MOBILE REFLOW
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 699px) {
+    .items-banner__typography {
+        top: 0; 
+        gap: 0; 
+        justify-content: space-between;
+        padding: calc(var(--navbar-height) + 2rem) 0 2rem 0;
+    }
+
+    /* WE DELETED THE .base-highlight BLACK OVERRIDE HERE! */
+
+    /* Turn the Ghost layer back on and apply the mask */
+    .items-banner__typography--ghost {
+        display: flex;
+        clip-path: polygon(
+            calc(50vw - 140px) 0%, 
+            calc(50vw + 140px) 0%, 
+            calc(50vw + 140px) 100%, 
+            calc(50vw - 140px) 100%
+        );
     }
     
-    .items-banner__arrow { height: 100%; position: static; }
+    .title-row {
+        flex-direction: column;
+        font-size: 21vw; 
+        line-height: 0.9;
+    }
+
+    .title-row--top { transform: translate3d(calc((1 - var(--scroll-progress)) * -100vw), 0, 0); }
+    .title-row--bottom { transform: translate3d(calc((1 - var(--scroll-progress)) * 100vw), 0, 0); }
     
-    .items-banner__arrow-mask {
-        position: static;
-        overflow: visible;
-        height: auto !important; 
+    .absolute-left, .absolute-right { 
+        position: static; 
+        padding: 0; 
     }
     
     .items-banner__central-image {
-        width: 80%;
-        opacity: 0.15; 
-        transform: translate3d(-50%, 0, 0) !important; 
+        /* Reverted back to inherit desktop dimensions */
+        width: 25vw;
+        min-width: 280px;
+        top: calc(var(--navbar-height) + 10px);
+        bottom: 10px;
+        opacity: 1; /* Restored full visibility */
+    }
+
+    .items-banner__info {
+        /* Mathematically locked to the exact same top and bottom as the image */
+        top: calc(var(--navbar-height) + 10px);
+        bottom: 10px;
+        left: 1rem; /* Pinned to the left gap */
+        right: auto;
+        width: 24px;
+        padding: 0;
+    }
+
+    .items-banner__arrow-wrapper {
+        /* Stretches the wrapper to fill the exact height of the image */
+        height: 100%; 
+        width: 24px;
+        min-height: auto;
+        margin: 0;
+    }
+
+    .items-banner__arrow {
+        /* Forces the SVG to stretch corner-to-corner within the wrapper */
+        height: 100%;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+    }
+
+    .items-banner__text { 
+        display: none; 
     }
 }

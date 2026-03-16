@@ -1,18 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { clamp } from '@/utils/clamp';
 
-/**
- * HOOK: useBannerScroll
- * ------------------------------------------------------------------
- * Manages hardware-accelerated scroll animations for the ItemsBanner.
- * Includes a requestAnimationFrame throttle and an immediate mobile bailout.
- */
 export const useBannerScroll = () => {
     const sectionRef = useRef(null);
     const imageRef = useRef(null);
-    const titleTopRef = useRef(null);
-    const titleBottomRef = useRef(null);
-    const highlightTopRef = useRef(null);
-    const highlightBottomRef = useRef(null);
     const arrowWrapperRef = useRef(null);
     const arrowMaskRef = useRef(null);
 
@@ -21,67 +12,38 @@ export const useBannerScroll = () => {
 
         const calculateScrollEffects = () => {
             if (!sectionRef.current || !imageRef.current) return;
-            
-            // 1. MOBILE BAILOUT: Reset transforms and stop calculations to save battery
-            if (window.innerWidth <= 768) {
-                imageRef.current.style.transform = 'none';
-                if (titleTopRef.current) titleTopRef.current.style.setProperty('--scroll-offset-top', '0px');
-                if (titleBottomRef.current) titleBottomRef.current.style.setProperty('--scroll-offset-bottom', '0px');
-                return;
-            }
+
+            // REMOVED THE MOBILE BAILOUT BLOCK HERE!
+            // Now the scroll math applies to all devices.
 
             const rect = sectionRef.current.getBoundingClientRect();
             const viewportHeight = window.innerHeight;
             
-            // 2. ACTIVE SCROLL ZONE (Section is entering/moving through viewport)
-            if (rect.top >= 0 && rect.top <= viewportHeight) {
-                
-                // Image Parallax
-                const translateY = rect.top * -0.25;
-                imageRef.current.style.transform = `translate3d(-50%, ${translateY}px, 0)`;
+            const rawProgress = 1 - (rect.top / viewportHeight);
+            const progress = clamp(rawProgress, 0, 1);
+            
+            sectionRef.current.style.setProperty('--scroll-progress', progress);
 
-                // Text Slide-In
-                const textScrollFactor = 0.4; 
-                if (titleTopRef.current) titleTopRef.current.style.setProperty('--scroll-offset-top', `${rect.top * -textScrollFactor}px`);
-                if (titleBottomRef.current) titleBottomRef.current.style.setProperty('--scroll-offset-bottom', `${rect.top * textScrollFactor}px`);
+            const translateY = rect.top * -0.25;
+            imageRef.current.style.transform = `translate3d(-50%, ${translateY}px, 0)`;
 
-                // Color Interpolation (Grayscale to Orange)
-                const rawRatio = Math.max(0, Math.min(1, rect.top / viewportHeight));
-                const progress = 1 - rawRatio; 
-                let colorString = progress >= 1 
-                    ? `rgb(249, 115, 22)` 
-                    : `rgb(${Math.floor(progress * 255)}, ${Math.floor(progress * 255)}, ${Math.floor(progress * 255)})`;
-                
-                if (highlightTopRef.current) highlightTopRef.current.style.color = colorString;
-                if (highlightBottomRef.current) highlightBottomRef.current.style.color = colorString;
+            let colorString;
+            if (progress >= 0.9998) {
+                colorString = 'var(--color-accent, #f97316)';
+            } else {
+                const shade = Math.floor((progress / 0.99) * 255);
+                colorString = `rgb(${shade}, ${shade}, ${shade})`;
+            }
+            sectionRef.current.style.setProperty('--highlight-color', colorString);
 
-                // SVG Arrow "Drawing" Expansion
-                if (arrowWrapperRef.current && arrowMaskRef.current) {
-                    const arrowMaxHeight = arrowWrapperRef.current.offsetHeight || 400; 
-                    const visibleHeight = (viewportHeight - 10) - arrowWrapperRef.current.getBoundingClientRect().top;
-                    const clampHeight = Math.min(Math.max(visibleHeight, 0), arrowMaxHeight);
-                    arrowMaskRef.current.style.height = `${clampHeight}px`;
-                }
-
-            } 
-            // 3. LOCK ZONE (Section has reached the top of the screen)
-            else if (rect.top < 0) {
-                imageRef.current.style.transform = `translate3d(-50%, 0px, 0)`;
-                
-                if (titleTopRef.current) titleTopRef.current.style.setProperty('--scroll-offset-top', '0px');
-                if (titleBottomRef.current) titleBottomRef.current.style.setProperty('--scroll-offset-bottom', '0px');
-                
-                const finalColor = `rgb(249, 115, 22)`;
-                if (highlightTopRef.current) highlightTopRef.current.style.color = finalColor;
-                if (highlightBottomRef.current) highlightBottomRef.current.style.color = finalColor;
-
-                if (arrowMaskRef.current && arrowWrapperRef.current) {
-                     arrowMaskRef.current.style.height = `${arrowWrapperRef.current.offsetHeight}px`;
-                }
+            if (arrowWrapperRef.current && arrowMaskRef.current) {
+                const arrowMaxHeight = arrowWrapperRef.current.offsetHeight || 400; 
+                const visibleHeight = (viewportHeight - 10) - arrowWrapperRef.current.getBoundingClientRect().top;
+                const clampHeight = Math.min(Math.max(visibleHeight, 0), arrowMaxHeight);
+                arrowMaskRef.current.style.height = `${clampHeight}px`;
             }
         };
 
-        // requestAnimationFrame Wrapper ensures we don't calculate faster than the screen can draw
         const onScroll = () => {
             if (!ticking) {
                 window.requestAnimationFrame(() => {
@@ -93,9 +55,9 @@ export const useBannerScroll = () => {
         };
 
         window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll, { passive: true }); // Also recalculate on resize (e.g., rotating phone)
+        window.addEventListener('resize', onScroll, { passive: true });
         
-        onScroll(); // Fire once on mount
+        onScroll(); 
 
         return () => {
             window.removeEventListener('scroll', onScroll);
@@ -103,8 +65,5 @@ export const useBannerScroll = () => {
         };
     }, []);
 
-    return {
-        sectionRef, imageRef, titleTopRef, titleBottomRef,
-        highlightTopRef, highlightBottomRef, arrowWrapperRef, arrowMaskRef
-    };
+    return { sectionRef, imageRef, arrowWrapperRef, arrowMaskRef };
 };
